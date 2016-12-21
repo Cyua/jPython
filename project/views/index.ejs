@@ -3,9 +3,16 @@
   <head>
     <title><%= title %></title>
     <link rel='stylesheet' href='/stylesheets/style.css' />
+    <link rel='stylesheet' href='/stylesheets/codemirror.css' />
+    <link rel='stylesheet' href='http://cdn.bootcss.com/bootstrap/3.3.0/css/bootstrap.min.css'>
+    <script src='http://cdn.bootcss.com/jquery/1.11.1/jquery.min.js'></script>
+    <script src='http://cdn.bootcss.com/bootstrap/3.3.0/js/bootstrap.min.js'></script>
   </head>
   <body>
     <h1><%= title %></h1>
-    <p>Welcome to <%= title %></p>
+    <textarea id='editor' name='editor'></textarea>
+    <script src='controllers/codemirror.js'></script>
+    <script src='controllers/python.js'></script>
+    <script src='controllers/editor.js'></script>
   </body>
 </html>
