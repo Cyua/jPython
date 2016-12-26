@@ -11,8 +11,18 @@
   <body>
     <h1><%= title %></h1>
     <textarea id='editor' name='editor'></textarea>
+	<button onclick="btnClick()">Submit</button>
+
+	<script>
+		function btnClick(){
+			var test = new treeNode(null,"test",null,null);
+			alert(test.nodeName);
+		}
+	</script>
+
     <script src='controllers/codemirror.js'></script>
     <script src='controllers/python.js'></script>
     <script src='controllers/editor.js'></script>
+	<script src='javascripts/tree.js'></script>
   </body>
 </html>
