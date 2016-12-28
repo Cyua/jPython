@@ -195,18 +195,17 @@ function getToken(line){
 	return tokens
 }
 function Lex(){
-	var res =  document.getElementById("result");
 	var text = codemirrorEditor.doc.getValue();
 	var textarr = text.split("\n");
 	var line = new Array();
 	for(var i=0;i<textarr.length;i++){
        line[i] = getToken(textarr[i]);
     }
+	return line;
     /*for(var i=0;i<line.length;i++){
     	for (var j=0;j<line[i].length;j++){
     		res.value += line[i][j].category;
     	}
     	
     }*/
-    
 }
