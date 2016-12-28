@@ -183,6 +183,10 @@ function getToken(line){
 		//alert("wrong")
 		i = i + 1
 	}
+	//多个空格替换
+	var regEx = /\s+/g;
+	line.replace(regEx, ' ');
+	//分词
     var linearr = line.split(" ");
     //检查冒号
     if(linearr[linearr.length-1].slice(-1)==":"){
