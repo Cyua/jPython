@@ -195,7 +195,6 @@ function getToken(line){
 	return tokens
 }
 function Lex(){
-	var res =  document.getElementById("result");
 	var text = codemirrorEditor.doc.getValue();
 	var textarr = text.split("\n");
 	var line = new Array();
@@ -209,5 +208,4 @@ function Lex(){
     	}
     	
     }*/
-    
 }
