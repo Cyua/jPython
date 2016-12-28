@@ -11,18 +11,12 @@
   <body>
     <h1><%= title %></h1>
     <textarea id='editor' name='editor'></textarea>
-	<button onclick="btnClick()">Submit</button>
-
-	<script>
-		function btnClick(){
-			var test = new treeNode();
-			alert(test.nName);
-		}
-	</script>
-
+	  <button onclick="Lex()">Run</button>
+    <textarea id='result' name='result'></textarea>
     <script src='controllers/codemirror.js'></script>
     <script src='controllers/python.js'></script>
     <script src='controllers/editor.js'></script>
-	<script src='javascripts/tree.js'></script>
+	  <script src='javascripts/tree.js'></script>
+    <script src='javascripts/lexer.js'></script>
   </body>
 </html>
