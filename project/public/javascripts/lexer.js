@@ -201,7 +201,7 @@ function Lex(){
 	for(var i=0;i<textarr.length;i++){
        line[i] = getToken(textarr[i]);
     }
-	return line;
+    return line
     /*for(var i=0;i<line.length;i++){
     	for (var j=0;j<line[i].length;j++){
     		res.value += line[i][j].category;
