@@ -17,10 +17,13 @@ class field{
 	}
 }
 
-//函数作用域相关
 var globalField = new field(null, "global");
 var curField = globalField;
+var root = new treeNode();
+var prevNode = root;
+var errCode = null;
 
+//函数作用域相关
 function enterField(fieldName){
 	var newField = new field(curField, fieldName);
 	curField = newField;
@@ -44,37 +47,124 @@ function getFieldName(){
 //return: 语法树根节点
 //********************************************
 function parseTree(lexResult){
-	var root = new treeNode();
-	var prevNode = root;
 	var line = 0;
 	while(line < lexResult.length){
-		for(var index = 0; index < lexResult[line].length; index++){
-			var token = lexResult[line][index];	
+		var tempRes = parseDispatch(lexResult, line, 0);
+		line = tempRes.line;
+		prevNode.next = tempRes.node;
+		prevNode = prevNode.next;
+	}
+	return root;	
+}
 
-			if(token.category == "signals"){
-				if(token.type == "COLON"){
-					console.log("COLON");
+function buildIdentifier(token){
+	var res = new treeNode();
+	res.nType = "IDENTIFIER";
+	res.nName = token.value;
+	res.parentPtr = getFieldName();
+	return res;
+}
 
-				}else if(token.type == "INDENT"){
-					continue;
-				}
-			}
+function buildConst(token){
+	var res = new treeNode();
+	if(token.type == "INTEGER_CONST" || token.type == "REAL_CONST"){
+		res.nType = "NUMBER";
+	}else if(token.type == "STRING"){
+		res.nType = "STRING";
+	}else {
+		throw "[ERROR] build const failed";
+	}
+	res.nValue = token.value;
+	return res;
+}
 
-			if(token.category == "reserved"){
-				
-			}
-			
-			if(token.category == "assign")
-			
+function parseDispatch(lexResult, line, startIndex){
+	var res = {
+		"line":null,
+		"node":null,
+	};
+	if(startIndex == lexResult[line].length-1){
+		var token = lexResult[line][startIndex];
+		if(token.category == "identifier"){
+			res.line = line;
+			res.node = buildIdentifier(token);
+			return res;
+		}else if(token.category == "number"){
+			res.line = line;
+			res.node = buildConst(token);
+			return res;
 		}
 	}
-	return null;	
+	
+	for(var index = startIndex; index < lexResult[line].length; index++){
+		var token = lexResult[line][index];	
+		if(token.category == "signals"){
+			if(token.type == "COLON"){
+				console.log("COLON");
+
+			}else if(token.type == "INDENT"){
+				continue;
+			}
+		}
+
+		if(token.category == "identifier"){
+			continue;		
+		}
+		if(token.category == "reserved"){
+			break;	
+		}
+			
+		if(token.category == "assign"){
+			return assignParser(lexResult, line, startIndex);
+		}
+
+		if(token.category == "compare"){
+			return compareParser(lexResult, line, startIndex);
+		}
+	}
+	return res;
+}
+
+function compareParser(lexResult, line, startIndex){
+	if(lexResult[line].length - startIndex < 3){
+		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+	}
+}
+
+
+function assignParser(lexResult, line, startIndex){	
+	if(lexResult[line].length - startIndex < 3){
+		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+	}
+	if(lexResult[line][startIndex].category != "identifier"){
+		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: can't assign to " + lexResult[line][startIndex].category;
+	}
+	if(lexResult[line][startIndex+1].category != "assign"){
+		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: can't assign to " + lexResult[line][startIndex+1].category;
+	}
+
+	var res = {
+		"line":null,
+		"node":new treeNode(),
+	};
+
+	if(startIndex == 0){
+		res.line = line + 1;
+	}
+	res.node.nType = "ASSIGN";
+	res.node.nName = lexResult[line][startIndex+1].value;
+	res.node.leftChild = buildIdentifier(lexResult[line][startIndex]);
+
+	var rightRes = parseDispatch(lexResult, line, startIndex+2);
+	if(rightRes.node.nType != "IDENTIFIER" && rightRes.node.nType != "LIST" && rightRes.node.nType != "NUMBER" && rightRes.node.nType != "STRING" && rightRes.node.nType != "ASSIGN" && rightRes.node.nType != "EXPR"){
+		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+	}
+	res.node.rightChild = rightRes.node;
+	return res;
 }
 
 //临时测试用函数
 function test(){
-	enterField("test1");
-	enterField("test2");
-	leaveField();
-	leaveField();
+	var line = 1;
+	throw "[ERROR] at line " + (line+1) + "\nSyntaxError: can't assign to literal";
 }
