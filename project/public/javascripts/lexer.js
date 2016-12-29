@@ -161,8 +161,8 @@ function getNextToken(str){
 			Token.value = ",";
 			break;
 		default:
-			Token.category = "identifer";
-			Token.type = "IDENTIFER";
+			Token.category = "identifier";
+			Token.type = "IDENTIFIER";
 			Token.value = str;
 			break;
 
