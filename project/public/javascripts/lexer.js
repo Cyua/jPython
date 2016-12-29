@@ -185,7 +185,7 @@ function getToken(line){
 	}
 	//多个空格替换
 	var regEx = /\s+/g;
-	line.replace(regEx, ' ');
+	line = line.replace(regEx, ' ');
 	//分词
     var linearr = line.split(" ");
     //检查冒号
