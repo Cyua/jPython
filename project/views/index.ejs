@@ -15,6 +15,14 @@
 	<script>
 		function btnClick(){
 			var lexResult = Lex();
+			var root = null;
+			try{
+				root = parseTree(lexResult);
+			}catch(e){
+				console.log(e);
+				return;
+			}
+			console.log(root);
 		}
 	</script>
     <script src='controllers/codemirror.js'></script>
