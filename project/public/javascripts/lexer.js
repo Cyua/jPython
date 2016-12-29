@@ -244,6 +244,9 @@ function getToken(line){
 function Lex(){
 	//var res =  document.getElementById("result");
 	var text = codemirrorEditor.doc.getValue();
+	//多个换行替换
+	var regEx = /\n+/g;
+	text = text.replace(regEx, '\n');
 	var textarr = text.split("\n");
 	var line = new Array();
 	for(var i=0;i<textarr.length;i++){
