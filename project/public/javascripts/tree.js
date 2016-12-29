@@ -48,8 +48,14 @@ function getFieldName(){
 //********************************************
 function parseTree(lexResult){
 	var line = 0;
+	globalField = new field(null, "global");
+	curField = globalField;
+	root = new treeNode();
+	prevNode = root;
+	errCode = null;
+
 	while(line < lexResult.length){
-		var tempRes = parseDispatch(lexResult, line, 0);
+		var tempRes = parseDispatch(lexResult, line, 0, lexResult[line].length);
 		if(tempRes == null)
 			throw "parse failed";
 		line = tempRes.line;
@@ -80,12 +86,13 @@ function buildConst(token){
 	return res;
 }
 
-function parseDispatch(lexResult, line, startIndex){
+function parseDispatch(lexResult, line, startIndex, endIndex){
 	var res = {
 		"line":null,
 		"node":null,
 	};
-	if(startIndex == lexResult[line].length-1){
+
+	if(startIndex == endIndex - 1){
 		var token = lexResult[line][startIndex];
 		if(token.category == "identifier"){
 			res.line = line;
@@ -98,10 +105,10 @@ function parseDispatch(lexResult, line, startIndex){
 		}
 	}
 	
-	for(var index = startIndex; index < lexResult[line].length; index++){
+	for(var index = startIndex; index < endIndex; index++){
 		var token = lexResult[line][index];	
 		if(token.category == "reserved"){
-			break;	
+		
 		}
 		if(token.category == "signals"){
 			if(token.type == "COLON"){
@@ -114,25 +121,88 @@ function parseDispatch(lexResult, line, startIndex){
 			}
 		}
 
-		if(token.category == "identifier"){
-			continue;		
-		}
-			
 		if(token.category == "assign"){
-			return assignParser(lexResult, line, startIndex);
+			return assignParser(lexResult, line, startIndex, endIndex);
 		}
 
-		if(index == lexResult[line].length - 1){
-			return exprParser(lexResult, line, startIndex);
+		if(index == endIndex - 1){
+			return exprParser(lexResult, line, startIndex, endIndex);
 		}
 	}
-	return res;
-}
-
-function exprParser(lexResult, line, startIndex){
-	console.log("expr");	
 	return null;
 }
+
+
+function exprParser(lexResult, line, startIndex, endIndex){
+	var res = {
+		"line":null,
+		"node":null,
+	};
+	for(var index = startIndex; index < endIndex; index++){
+		var token = lexResult[line][index];
+		if(token.type == "OR" && token.category == "reserved"){
+			if(index == 0 || index == endIndex - 1){
+				throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+			}
+			res.line = line + 1;
+			res.node = new treeNode();
+			res.node.nType = "EXPR";
+			res.node.nName = "||";
+
+			var leftRes = parseDispatch(lexResult, line, startIndex, index);
+			if(leftRes.node.nType == "FUNC" || leftRes.node.nType == "LOOP" || leftRes.node.nType == "BRANCH"){
+				throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+			}
+			res.node.leftChild = leftRes.node;
+			var rightRes = parseDispatch(lexResult, line, index+1, endIndex);		
+			res.node.rightChild = rightRes.node;
+			return res;
+		}
+	}
+	
+		
+	for(var index = startIndex; index < endIndex; index++){
+		var token = lexResult[line][index];
+		if(token.type == "AND" && token.category == "reserved"){
+			if(index == 0 || index == endIndex - 1){
+				throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+			}
+			res.line = line + 1;
+			res.node = new treeNode();
+			res.node.nType = "EXPR";
+			res.node.nName = "&&";
+			var leftRes = parseDispatch(lexResult, line, startIndex, index);
+			if(leftRes.node.nType == "FUNC" || leftRes.node.nType == "LOOP" || leftRes.node.nType == "BRANCH"){
+				throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+			}
+			res.node.leftChild = leftRes.node;
+			var rightRes = parseDispatch(lexResult, line, index+1, endIndex);		
+			res.node.rightChild = rightRes.node;
+			return res;
+		}
+	}
+
+	for(var index = startIndex; index < endIndex; index++){
+		var token = lexResult[line][index];
+		if(token.type == "NOT" && token.category == "reserved"){
+			if(index != startIndex){
+				throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+			}
+			res.line = line + 1;
+			res.node = new treeNode();
+			res.node.nType = "EXPR";
+			res.node.nName = "!";
+			var leftRes = parseDispatch(lexResult, line, startIndex+1, endIndex);
+			if(leftRes.node.nType == "FUNC" || leftRes.node.nType == "LOOP" || leftRes.node.nType == "BRANCH"){
+				throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+			}
+			res.node.leftChild = leftRes.node;
+			return res;
+		}
+	}
+	return null;
+}
+
 
 function compareParser(lexResult, line, startIndex){
 	if(lexResult[line].length - startIndex < 3){
@@ -141,8 +211,8 @@ function compareParser(lexResult, line, startIndex){
 }
 
 
-function assignParser(lexResult, line, startIndex){	
-	if(lexResult[line].length - startIndex < 3){
+function assignParser(lexResult, line, startIndex, endIndex){	
+	if(endIndex - startIndex < 3){
 		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
 	}
 	if(lexResult[line][startIndex].category != "identifier"){
@@ -164,8 +234,8 @@ function assignParser(lexResult, line, startIndex){
 	res.node.nName = lexResult[line][startIndex+1].value;
 	res.node.leftChild = buildIdentifier(lexResult[line][startIndex]);
 
-	var rightRes = parseDispatch(lexResult, line, startIndex+2);
-	if(rightRes.node.nType == "FUNC" || rightRes.node.nType == "LOOP" || rightRes.node.nType == "RESERVED"){
+	var rightRes = parseDispatch(lexResult, line, startIndex+2, endIndex);
+	if(rightRes.node.nType == "FUNC" || rightRes.node.nType == "LOOP" || rightRes.node.nType == "RESERVED" || rightRes.node.nType == "BRANCH"){
 		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
 	}
 	res.node.rightChild = rightRes.node;
