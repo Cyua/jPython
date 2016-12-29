@@ -1,5 +1,5 @@
 function getNextToken(str){
-	var RESERVED_KEYWORDS = new Array('def','break','if','else','elif','for','in','and','or','not','continue','while','return','print');
+	var RESERVED_KEYWORDS = new Array('def','break','if','else','elif','for','and','or','not','continue','while','return','print');
 	var Token = new Object() 
     var inter = /^[0-9]+$/;
     var real = /^\d+\.\d+$/;
@@ -128,6 +128,16 @@ function getNextToken(str){
 			Token.type = "NOTE";
 			Token.value = str;
 			break;
+		case "in":
+			Token.category = "compare";
+			Token.type = "IN";
+			Token.value = str;
+			break;
+		case "not in":
+			Token.category = "compare";
+			Token.type = "NOTIN";
+			Token.value = str;
+			break;
 		//brackets
 		case "(":
 			Token.category = "brackets";
@@ -194,7 +204,7 @@ function getToken(line){
 	//分词
     var linearr = line.split(" ");
     //检查冒号
-    if(linearr[linearr.length-1].slice(-1)==":"){
+    if(linearr[linearr.length-1]!=":"&&linearr[linearr.length-1].slice(-1)==":"){
     	linearr[linearr.length-1]=linearr[linearr.length-1].slice(0,-1);
     	linearr[linearr.length]=":"
     }
@@ -236,8 +246,15 @@ function getToken(line){
 			j = j+1;
 		}
 	}
-	for (j=0;j<linearr.length;j++){
-		tokens[j+i]= getNextToken(linearr[j]);
+	for (j=0,m=0;m<linearr.length;j++,m++){
+		if(linearr[j]=="not"&&linearr[j+1]=="in"){
+	   		tokens[j+i] = getNextToken("not in");
+	   		m = m + 1
+	    }
+	    else{
+	    	tokens[j+i]= getNextToken(linearr[m]);
+	    }
+		
 	}
 	return tokens
 }
@@ -245,12 +262,18 @@ function Lex(){
 	//var res =  document.getElementById("result");
 	var text = codemirrorEditor.doc.getValue();
 	//多个换行替换
-	var regEx = /\n+/g;
-	text = text.replace(regEx, '\n');
+	//var regEx = /\n+/g;
+	//text = text.replace(regEx, '\n');
 	var textarr = text.split("\n");
+	for(var i=0;i<textarr.length;i++){
+		if(textarr[i].length==0){
+		textarr.splice(i,1);
+		i = i-1;
+		}
+	}
 	var line = new Array();
 	for(var i=0;i<textarr.length;i++){
-       line[i] = getToken(textarr[i]);
+	   		line[i] = getToken(textarr[i]);
     }
     /*for(var i=0;i<line.length;i++){
     	for (var j=0;j<line[i].length;j++){
@@ -258,5 +281,5 @@ function Lex(){
     	}
     	
     }*/
-    return line
+    return line;
 }
