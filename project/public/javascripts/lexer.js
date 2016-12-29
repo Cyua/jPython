@@ -144,16 +144,6 @@ function getNextToken(str){
 			Token.type = "MLPAREN";
 			Token.value = str;
 			break;
-		case "{":
-			Token.category = "brackets";
-			Token.type = "BLPAREN";
-			Token.value = str;
-			break;
-		case "}":
-			Token.category = "brackets";
-			Token.type = "BLPAREN";
-			Token.value = str;
-			break;
 		//signal
 		case "INDENT":
 			Token.category = "signals";
@@ -164,6 +154,11 @@ function getNextToken(str){
 			Token.category = "signals";
 			Token.type = "COLON";
 			Token.value = ":";
+			break;
+		case ",":
+			Token.category = "signals";
+			Token.type = "COMMA";
+			Token.value = ",";
 			break;
 		default:
 			Token.category = "identifer";
@@ -188,24 +183,72 @@ function getToken(line){
 		//alert("wrong")
 		i = i + 1
 	}
+	//多个空格替换
+	var regEx = /\s+/g;
+	line.replace(regEx, ' ');
+	//分词
     var linearr = line.split(" ");
+    //检查冒号
+    if(linearr[linearr.length-1].slice(-1)==":"){
+    	linearr[linearr.length-1]=linearr[linearr.length-1].slice(0,-1);
+    	linearr[linearr.length]=":"
+    }
+    //检查逗号
+    //检查括号
+    for (j=0;j<linearr.length;j++){
+		if(linearr[j].charAt(0)=="("){
+			linearr.splice(j,0,"(");
+			linearr[j+1]=linearr[j+1].slice(1);
+			//alert("ok")
+		}
+		else if(linearr[j].slice(-1)=="("){
+			linearr.splice(j+1,0,"(");
+			linearr[j]=linearr[j].slice(0,-1);
+			j = j+1;
+		}
+		else if(linearr[j].slice(-1)==")"){
+			linearr.splice(j+1,0,")");
+			linearr[j]=linearr[j].slice(0,-1);
+			j = j+1;
+		}
+		else if(linearr[j].slice(0)=="["){
+			linearr.splice(j,0,"[");
+			linearr[j+1]=linearr[j+1].slice(1);
+		}
+		else if(linearr[j].slice(-1)=="["){
+			linearr.splice(j+1,0,"[");
+			linearr[j]=linearr[j].slice(0,-1);
+			j = j+1;
+		}
+		else if(linearr[j].slice(-1)=="]"){
+			linearr.splice(j+1,0,"]");
+			linearr[j]=linearr[j].slice(0,-1);
+			j = j+1;
+		}
+		else if(linearr[j].slice(-1)==","){
+			linearr.splice(j+1,0,",");
+			linearr[j]=linearr[j].slice(0,-1);
+			j = j+1;
+		}
+	}
 	for (j=0;j<linearr.length;j++){
 		tokens[j+i]= getNextToken(linearr[j]);
 	}
 	return tokens
 }
 function Lex(){
+	//var res =  document.getElementById("result");
 	var text = codemirrorEditor.doc.getValue();
 	var textarr = text.split("\n");
 	var line = new Array();
 	for(var i=0;i<textarr.length;i++){
        line[i] = getToken(textarr[i]);
     }
-    return line
     /*for(var i=0;i<line.length;i++){
     	for (var j=0;j<line[i].length;j++){
-    		res.value += line[i][j].category;
+    		res.value += line[i][j].type+" ";
     	}
     	
     }*/
+    return line
 }
