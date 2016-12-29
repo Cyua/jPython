@@ -13,6 +13,11 @@ function getNextToken(str){
 		Token.type = 'REAL_CONST';
 		Token.value = str;
 	}
+	else if(str.charAt(0)=="\""||str.charAt(0)=="\""){
+		Token.category = "NUMBER";
+		Token.type = 'STRING';
+		Token.value = str;
+	}
 	else if(RESERVED_KEYWORDS.indexOf(str)!= -1){
 		Token.category = "reserved";
 		Token.type = str.toUpperCase();
