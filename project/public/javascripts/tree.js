@@ -147,7 +147,7 @@ function exprParser(lexResult, line, startIndex, endIndex){
 			res.line = line + 1;
 			res.node = new treeNode();
 			res.node.nType = "EXPR";
-			res.node.nName = "||";
+			res.node.nName = token.type;
 
 			var leftRes = parseDispatch(lexResult, line, startIndex, index);
 			if(leftRes.node.nType == "FUNC" || leftRes.node.nType == "LOOP" || leftRes.node.nType == "BRANCH"){
@@ -170,7 +170,7 @@ function exprParser(lexResult, line, startIndex, endIndex){
 			res.line = line + 1;
 			res.node = new treeNode();
 			res.node.nType = "EXPR";
-			res.node.nName = "&&";
+			res.node.nName = token.type;
 			var leftRes = parseDispatch(lexResult, line, startIndex, index);
 			if(leftRes.node.nType == "FUNC" || leftRes.node.nType == "LOOP" || leftRes.node.nType == "BRANCH"){
 				throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
@@ -191,7 +191,7 @@ function exprParser(lexResult, line, startIndex, endIndex){
 			res.line = line + 1;
 			res.node = new treeNode();
 			res.node.nType = "EXPR";
-			res.node.nName = "!";
+			res.node.nName = token.type;
 			var leftRes = parseDispatch(lexResult, line, startIndex+1, endIndex);
 			if(leftRes.node.nType == "FUNC" || leftRes.node.nType == "LOOP" || leftRes.node.nType == "BRANCH"){
 				throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
@@ -200,6 +200,52 @@ function exprParser(lexResult, line, startIndex, endIndex){
 			return res;
 		}
 	}
+
+	for(var index = startIndex; index < endIndex; index++){
+		var token = lexResult[line][index];
+		if(token.category == "compare"){
+			if(index == startIndex || index == endIndex - 1){
+				throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+			}
+			//TODO: in; not in
+			res.line = line + 1;
+			res.node = new treeNode();
+			res.node.nType = "EXPR";
+			res.node.nName = token.type;
+			var leftRes = parseDispatch(lexResult, line, startIndex, index);
+			if(leftRes.node.nType == "FUNC" || leftRes.node.nType == "LOOP" || leftRes.node.nType == "BRANCH"){
+				throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+			}
+			res.node.leftChild = leftRes.node;
+
+			var rightRes = parseDispatch(lexResult, line, index+1, endIndex);
+			if(rightRes.node.nType == "FUNC" || rightRes.node.nType == "LOOP" || rightRes.node.nType == "BRANCH"){
+				throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+			}
+			res.node.rightChild = rightRes.node;
+			return res;
+		}
+	}
+	
+	for(var index = startIndex; index < endIndex; index++){
+		var token = lexResult[line][index];
+		if(token.type == "PLUS" || token.type == "MINUS"){
+			if(token.type == "PLUS" && (index == startIndex || index == endIndex -1)){
+				throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+			}
+			if(token.type == "MINUS" && index == endIndex - 1){
+				throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+			}
+			//TODO: negative number
+			res.line = line + 1;
+			res.node = new treeNode();
+			res.node.nType = "EXPR";
+			res.node.nName = token.type;
+
+		}
+	}
+
+
 	return null;
 }
 
