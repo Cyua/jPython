@@ -50,6 +50,8 @@ function parseTree(lexResult){
 	var line = 0;
 	while(line < lexResult.length){
 		var tempRes = parseDispatch(lexResult, line, 0);
+		if(tempRes == null)
+			throw "parse failed";
 		line = tempRes.line;
 		prevNode.next = tempRes.node;
 		prevNode = prevNode.next;
@@ -98,31 +100,38 @@ function parseDispatch(lexResult, line, startIndex){
 	
 	for(var index = startIndex; index < lexResult[line].length; index++){
 		var token = lexResult[line][index];	
+		if(token.category == "reserved"){
+			break;	
+		}
 		if(token.category == "signals"){
 			if(token.type == "COLON"){
 				console.log("COLON");
 
 			}else if(token.type == "INDENT"){
 				continue;
+			}else if(token.type == "COMMA"){
+
 			}
 		}
 
 		if(token.category == "identifier"){
 			continue;		
 		}
-		if(token.category == "reserved"){
-			break;	
-		}
 			
 		if(token.category == "assign"){
 			return assignParser(lexResult, line, startIndex);
 		}
 
-		if(token.category == "compare"){
-			return compareParser(lexResult, line, startIndex);
+		if(index == lexResult[line].length - 1){
+			return exprParser(lexResult, line, startIndex);
 		}
 	}
 	return res;
+}
+
+function exprParser(lexResult, line, startIndex){
+	console.log("expr");	
+	return null;
 }
 
 function compareParser(lexResult, line, startIndex){
@@ -156,7 +165,7 @@ function assignParser(lexResult, line, startIndex){
 	res.node.leftChild = buildIdentifier(lexResult[line][startIndex]);
 
 	var rightRes = parseDispatch(lexResult, line, startIndex+2);
-	if(rightRes.node.nType != "IDENTIFIER" && rightRes.node.nType != "LIST" && rightRes.node.nType != "NUMBER" && rightRes.node.nType != "STRING" && rightRes.node.nType != "ASSIGN" && rightRes.node.nType != "EXPR"){
+	if(rightRes.node.nType == "FUNC" || rightRes.node.nType == "LOOP" || rightRes.node.nType == "RESERVED"){
 		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
 	}
 	res.node.rightChild = rightRes.node;
