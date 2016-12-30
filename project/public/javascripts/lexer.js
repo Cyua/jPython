@@ -284,10 +284,10 @@ function getToken(line){
 			j = j+1;
 		}
 	}
-	for(i=0;i<linearr.length;i++){
-		if(linearr[i]==""){
-			linearr.splice(i,1);
-			i = i -1;
+	for(n=0;n<linearr.length;n++){
+		if(linearr[n]==""){
+			linearr.splice(n,1);
+			n = n -1;
 		}
 	}
 	for (j=0,m=0;m<linearr.length;j++,m++){
