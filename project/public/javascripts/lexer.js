@@ -9,13 +9,13 @@ function getNextToken(str){
 		Token.value = str;
 	}
 	else if(real.test(str)==true){
-        Token.category = "NUMBER";
+        Token.category = "number";
 		Token.type = 'REAL_CONST';
 		Token.value = str;
 	}
 	else if(str.charAt(0)=="\""||str.charAt(0)=="\'"){
-		Token.category = "NUMBER";
-		Token.type = 'string';
+		Token.category = "number";
+		Token.type = 'STRING';
 		Token.value = str.slice(1,-1);
 	}
 	else if(RESERVED_KEYWORDS.indexOf(str)!= -1){
