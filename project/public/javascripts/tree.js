@@ -53,6 +53,8 @@ function parseTree(lexResult){
 	root = new treeNode();
 	prevNode = root;
 	errCode = null;
+	console.log(lexResult);
+	
 
 	while(line < lexResult.length){
 		var tempRes = parseDispatch(lexResult, line, 0, lexResult[line].length);
@@ -86,6 +88,10 @@ function buildConst(token){
 	return res;
 }
 
+function buildList(lexResult, line, startIndex, endIndex){
+	return null;	
+}
+
 function parseDispatch(lexResult, line, startIndex, endIndex){
 	var res = {
 		"line":null,
@@ -95,14 +101,21 @@ function parseDispatch(lexResult, line, startIndex, endIndex){
 	if(startIndex == endIndex - 1){
 		var token = lexResult[line][startIndex];
 		if(token.category == "identifier"){
-			res.line = line;
+			res.line = line + 1;
 			res.node = buildIdentifier(token);
 			return res;
 		}else if(token.category == "number"){
-			res.line = line;
+			res.line = line + 1;
 			res.node = buildConst(token);
 			return res;
 		}
+	}
+
+	if(lexResult[line][startIndex].type == "MLPAREN" && lexResult[line][endIndex - 1].type == "MRPAREN"){
+		//TODO: list
+		res.line = line + 1;	
+		res.node = buildList(lexResult, line, startIndex, endIndex);
+		return res;
 	}
 	
 	for(var index = startIndex; index < endIndex; index++){
@@ -138,6 +151,7 @@ function exprParser(lexResult, line, startIndex, endIndex){
 		"line":null,
 		"node":null,
 	};
+
 	for(var index = startIndex; index < endIndex; index++){
 		var token = lexResult[line][index];
 		if(token.type == "OR" && token.category == "reserved"){
@@ -159,7 +173,6 @@ function exprParser(lexResult, line, startIndex, endIndex){
 			return res;
 		}
 	}
-	
 		
 	for(var index = startIndex; index < endIndex; index++){
 		var token = lexResult[line][index];
@@ -207,7 +220,6 @@ function exprParser(lexResult, line, startIndex, endIndex){
 			if(index == startIndex || index == endIndex - 1){
 				throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
 			}
-			//TODO: in; not in
 			res.line = line + 1;
 			res.node = new treeNode();
 			res.node.nType = "EXPR";
@@ -221,6 +233,9 @@ function exprParser(lexResult, line, startIndex, endIndex){
 			var rightRes = parseDispatch(lexResult, line, index+1, endIndex);
 			if(rightRes.node.nType == "FUNC" || rightRes.node.nType == "LOOP" || rightRes.node.nType == "BRANCH"){
 				throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+			}
+			if((res.node.nName == "IN" || res.node.nName == "NOTIN") && (rightRes.node.nType != "LIST" && rightRes.node.nType != "FUNC_CALL" && rightRes.node.nType != "IDENTIFIER")){
+				throw "[ERROR] at line " + (line+1) + "\nSyntaxError: argument of type "+rightRes.node.nType+" is not iterable";
 			}
 			res.node.rightChild = rightRes.node;
 			return res;
@@ -242,19 +257,54 @@ function exprParser(lexResult, line, startIndex, endIndex){
 			res.node.nType = "EXPR";
 			res.node.nName = token.type;
 
+			var leftRes = parseDispatch(lexResult, line, startIndex, index);
+			if(leftRes.node.nType == "FUNC" || leftRes.node.nType == "LOOP" || leftRes.node.nType == "BRANCH"){
+				throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+			}
+			if(token.type == "MINUS" && (leftRes.node.nType == "STRING" || leftRes.node.nType == "LIST")){
+				throw "[ERROR] at line " + (line+1) + "\nSyntaxError: unsupported operand type for -: " + leftRes.node.nType;
+			}
+			res.node.leftChild = leftRes.node;
+
+			var rightRes = parseDispatch(lexResult, line, index+1, endIndex);
+			if(rightRes.node.nType == "FUNC" || rightRes.node.nType == "LOOP" || rightRes.node.nType == "BRANCH"){
+				throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+			}
+			if(token.type == "MINUS" && (rightRes.node.nType == "STRING" || rightRes.node.nType == "LIST")){
+				throw "[ERROR] at line " + (line+1) + "\nSyntaxError: unsupported operand type for -: " + leftRes.node.nType;
+			}
+			res.node.rightChild = rightRes.node;
+			return res;
 		}
 	}
 
-
-	return null;
-}
-
-
-function compareParser(lexResult, line, startIndex){
-	if(lexResult[line].length - startIndex < 3){
-		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+	for(var index = startIndex; index < endIndex; index++){
+		var token = lexResult[line][index];
+		if(token.type == "MUL" || token.type == "DIV" || token.type == "MOD"){
+			if(index == startIndex || index == endIndex -1){
+				throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+			}
+			res.line = line + 1;
+			res.node = new treeNode();
+			res.node.nType = "EXPR";
+			res.node.nName = token.type;
+			var leftRes = parseDispatch(lexResult, line, startIndex, index);
+			if(leftRes.node.nType == "FUNC" || leftRes.node.nType == "LOOP" || leftRes.node.nType == "BRANCH"){
+				throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+			}
+			res.node.leftChild = leftRes.node;
+			var rightRes = parseDispatch(lexResult, line, index+1, endIndex);
+			if(rightRes.node.nType == "FUNC" || rightRes.node.nType == "LOOP" || rightRes.node.nType == "BRANCH"){
+				throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+			}
+			res.node.rightChild = rightRes.node;
+			return res;
+		}
 	}
+
+	throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
 }
+
 
 
 function assignParser(lexResult, line, startIndex, endIndex){	
