@@ -13,10 +13,10 @@ function getNextToken(str){
 		Token.type = 'REAL_CONST';
 		Token.value = str;
 	}
-	else if(str.charAt(0)=="\""||str.charAt(0)=="\""){
+	else if(str.charAt(0)=="\""||str.charAt(0)=="\'"){
 		Token.category = "NUMBER";
-		Token.type = 'STRING';
-		Token.value = str;
+		Token.type = 'string';
+		Token.value = str.slice(1,-1);
 	}
 	else if(RESERVED_KEYWORDS.indexOf(str)!= -1){
 		Token.category = "reserved";
@@ -226,7 +226,7 @@ function getToken(line){
 			linearr[j]=linearr[j].slice(0,-1);
 			j = j+1;
 		}
-		else if(linearr[j].slice(0)=="["){
+		else if(linearr[j].charAt(0)=="["){
 			linearr.splice(j,0,"[");
 			linearr[j+1]=linearr[j+1].slice(1);
 		}
