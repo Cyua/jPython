@@ -248,44 +248,46 @@ function getToken(line){
 		}
 	}*/
 	for (j=0;j<linearr.length;j++){
-		if(linearr[j].indexOf("(")!= -1&&linearr[j].indexOf("(")!= 0){
+		if(linearr[j].indexOf("(")!= -1){
 			var index = linearr[j].indexOf("(")
 			linearr.splice(j+1,0,"(");
 			linearr.splice(j+2,0,linearr[j].slice(index+1));
 			linearr[j]=linearr[j].slice(0,index);
 			j = j+1;
 		}
-		else if(linearr[j].indexOf("[")!= -1&&linearr[j].indexOf("[")!= 0){
+		else if(linearr[j].indexOf("[")!= -1){
 			var index = linearr[j].indexOf("[")
 			linearr.splice(j+1,0,"[");
 			linearr.splice(j+2,0,linearr[j].slice(index+1));
 			linearr[j]=linearr[j].slice(0,index);
 			j = j+1;
 		}
-		else if(linearr[j].indexOf("]")!= -1&&linearr[j].indexOf("]")!= 0){
+		else if(linearr[j].indexOf("]")!= -1){
 			var index = linearr[j].indexOf("]")
 			linearr.splice(j+1,0,"]");
 			linearr.splice(j+2,0,linearr[j].slice(index+1));
 			linearr[j]=linearr[j].slice(0,index);
 			j = j+1;
 		}
-		else if(linearr[j].indexOf(")")!= -1&&linearr[j].indexOf(")")!= 0){
+		else if(linearr[j].indexOf(")")!= -1){
 			var index = linearr[j].indexOf(")");
 			linearr.splice(j+1,0,")");
 			linearr.splice(j+2,0,linearr[j].slice(index+1));
 			linearr[j]=linearr[j].slice(0,index);
 			j = j+1;
 		}
-		else if(linearr[j].indexOf(",")!= -1&&linearr[j].indexOf(",")!= 0){
+		else if(linearr[j].indexOf(",")!= -1){
 			var index = linearr[j].indexOf(",")
 			linearr.splice(j+1,0,",");
 			linearr.splice(j+2,0,linearr[j].slice(index+1));
 			linearr[j]=linearr[j].slice(0,index);
 			j = j+1;
 		}
-		if(linearr[j]==""){
-			linearr.splice(j,1);
-			j = j -1;
+	}
+	for(i=0;i<linearr.length;i++){
+		if(linearr[i]==""){
+			linearr.splice(i,1);
+			i = i -1;
 		}
 	}
 	for (j=0,m=0;m<linearr.length;j++,m++){
