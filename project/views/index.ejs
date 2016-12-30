@@ -12,30 +12,12 @@
     <h1><%= title %></h1>
     <textarea id='editor' name='editor'></textarea>
 	<button onclick="btnClick()">Run</button>
-	<script>
-		function btnClick(){
-      try{
-        var lexResult = Lex();
-      }
-			catch(e){
-        console.log(e);
-        return;
-      }
-			var root = null;
-			try{
-				root = parseTree(lexResult);
-			}catch(e){
-				console.log(e);
-				return;
-			}
-			console.log(root);
-		}
-	</script>
     <textarea id='result' name='result'></textarea>
     <script src='controllers/codemirror.js'></script>
     <script src='controllers/python.js'></script>
     <script src='controllers/editor.js'></script>
     <script src='javascripts/lexer.js'></script>
 	<script src='javascripts/tree.js'></script>
+    <script src='javascripts/interpreter.js'></script>
   </body>
 </html>
