@@ -1,8 +1,9 @@
-function getNextToken(str){
+function getNextToken(line,str){
 	var RESERVED_KEYWORDS = new Array('def','break','if','else','elif','for','and','or','not','continue','while','return','print');
 	var Token = new Object() 
     var inter = /^[0-9]+$/;
     var real = /^\d+\.\d+$/;
+    var id = /^([A-Za-z]|_)\w+$/;
 	if(inter.test(str)==true){
 		Token.category = "number";
 		Token.type = "INTEGER_CONST";
@@ -179,6 +180,9 @@ function getNextToken(str){
 			Token.category = "identifier";
 			Token.type = "IDENTIFIER";
 			Token.value = str;
+			if(id.test(str)!=true){
+				throw "[ERROR] at line " + line + "\nSyntaxError: invalid identifier: \""+str +"\"";
+			}
 			break;
 
 		}
@@ -296,7 +300,7 @@ function getToken(line){
 	   		m = m + 1
 	    }
 	    else{
-	    	tokens[j+i]= getNextToken(linearr[m]);
+	    	tokens[j+i]= getNextToken(m,linearr[m]);
 	    }
 		
 	}
