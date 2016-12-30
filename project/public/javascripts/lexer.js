@@ -181,7 +181,7 @@ function getNextToken(line,str){
 			Token.type = "IDENTIFIER";
 			Token.value = str;
 			if(id.test(str)!=true){
-				throw "[ERROR] at line " + line + "\nSyntaxError: invalid identifier";
+				throw "[ERROR] at line " + line + "\nSyntaxError: invalid identifier: \""+str +"\"";
 			}
 			break;
 
