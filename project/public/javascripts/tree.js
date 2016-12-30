@@ -54,7 +54,6 @@ function parseTree(lexResult){
 	prevNode = root;
 	errCode = null;
 	console.log(lexResult);
-	
 
 	while(line < lexResult.length){
 		var tempRes = parseDispatch(lexResult, line, 0, lexResult[line].length);
@@ -67,6 +66,7 @@ function parseTree(lexResult){
 	return root;	
 }
 
+
 function buildIdentifier(token){
 	var res = new treeNode();
 	res.nType = "IDENTIFIER";
@@ -74,6 +74,7 @@ function buildIdentifier(token){
 	res.parentPtr = getFieldName();
 	return res;
 }
+
 
 function buildConst(token){
 	var res = new treeNode();
@@ -88,9 +89,46 @@ function buildConst(token){
 	return res;
 }
 
+
 function buildList(lexResult, line, startIndex, endIndex){
 	return null;	
 }
+
+
+function findPairedBracket(lexResult, line, startIndex, endIndex){
+	var res = {
+		"left": null,
+		"right": null,
+	};
+	var pairCount = 0;
+	for(var index = startIndex; index < endIndex; index++){
+		var token = lexResult[line][index];
+		if(token.type == "LPAREN"){
+			if(res.left == null){
+				res.left = index;
+			}
+			pairCount += 1;
+			continue;
+		}
+		if(token.type == "RPAREN"){
+			if(res.left == null){
+				throw "[ERROR] at line " + (line+1) + "\nSyntaxError: find unpaired brackets";
+			}else{
+				pairCount -= 1;
+				if(pairCount == 0){
+					res.right = index;
+					return res;
+				}else if(pairCount < 0){
+					throw "[ERROR] at line " + (line+1) + "\nSyntaxError: find unpaired brackets";
+				}
+			}
+		}
+	}
+	if(pairCount == 0)
+		return null;
+	throw "[ERROR] at line " + (line+1) + "\nSyntaxError: find unpaired brackets";
+}
+
 
 function parseDispatch(lexResult, line, startIndex, endIndex){
 	var res = {
@@ -112,6 +150,7 @@ function parseDispatch(lexResult, line, startIndex, endIndex){
 			throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
 		}
 	}
+	//TODO: func_call
 	if(lexResult[line].length >= 3 && lexResult[line][startIndex].category == "identifier" && 
 		lexResult[line][startIndex+1].type == "LPAREN" && lexResult[line][endIndex-1].type == "RPAREN"){
 			return funCallParser();
@@ -152,11 +191,59 @@ function parseDispatch(lexResult, line, startIndex, endIndex){
 }
 
 
+function funCallParser(){
+	throw "funCallParser is under developing...";
+}
+
+
 function exprParser(lexResult, line, startIndex, endIndex){
 	var res = {
 		"line":null,
 		"node":null,
 	};
+
+	var bracket = findPairedBracket(lexResult, line, startIndex, endIndex);	
+	if(bracket != null){
+		if(bracket.left > startIndex){
+			var token = lexResult[line][bracket.left - 1];
+			if(token.category != "operators" && token.category != "compare" &&
+			token.category != "assign" && token.category != "reserved"){
+				throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+			}
+			if(token.category == "reserved" && (token.type != "AND" && token.type != "OR" && token.type != "NOT")){
+				throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+			}
+			res.line = line + 1;
+			res.node = new treeNode();
+			res.node.nType = "EXPR";	
+			res.node.nName = token.type;
+			var leftRes = parseDispatch(lexResult, line, startIndex, bracket.left-1);
+			res.node.leftChild = leftRes.node;
+			var rightRes = parseDispatch(lexResult, line, bracket.left, endIndex);
+			res.node.rightChild = rightRes.node;
+			return res;
+		}else if(bracket.right == endIndex - 1){
+			return parseDispatch(lexResult, line, startIndex+1, endIndex-1);
+		}else{
+			var token = lexResult[line][bracket.right + 1];
+			if(token.category != "operators" && token.category != "compare" &&
+			token.category != "assign" && token.category != "reserved"){
+				throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+			}
+			if(token.category == "reserved" && (token.type != "AND" && token.type != "OR")){
+				throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+			}
+			res.line = line + 1;
+			res.node = new treeNode();
+			res.node.nType= "EXPR";
+			res.node.nName = token.type;
+			var leftRes = parseDispatch(lexResult, line, startIndex+1, bracket.right);
+			res.node.leftChild = leftRes.node;
+			var rightRes = parseDispatch(lexResult, line, bracket.right+2, endIndex);
+			res.node.rightChild = rightRes.node;
+			return res;
+		}
+	}
 
 	for(var index = startIndex; index < endIndex; index++){
 		var token = lexResult[line][index];
