@@ -108,8 +108,14 @@ function parseDispatch(lexResult, line, startIndex, endIndex){
 			res.line = line + 1;
 			res.node = buildConst(token);
 			return res;
+		}else{
+			throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
 		}
 	}
+	if(lexResult[line].length >= 3 && lexResult[line][startIndex].category == "identifier" && 
+		lexResult[line][startIndex+1].type == "LPAREN" && lexResult[line][endIndex-1].type == "RPAREN"){
+			return funCallParser();
+		}
 
 	if(lexResult[line][startIndex].type == "MLPAREN" && lexResult[line][endIndex - 1].type == "MRPAREN"){
 		//TODO: list
