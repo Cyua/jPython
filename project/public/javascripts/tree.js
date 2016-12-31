@@ -303,6 +303,7 @@ function funDefParser(lexResult, line, startIndex, endIndex){
 		tempNode.next = tempRes.node;
 		tempNode = tempNode.next;
 	}
+	res.node.rightChild = res.node.rightChild.next;
 	return res;
 }
 
