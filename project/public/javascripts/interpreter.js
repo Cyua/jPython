@@ -34,8 +34,38 @@ function execute(treeNode, currentStorage) {
         case "LIST":
             break
         case "FUNC":
+            treeNode.parameters = {}
+            let parameter1 = treeNode.leftChild
+            while (parameter1 != null) {
+                treeNode.parameters[parameter1.nName] = null
+                parameter1 = parameter1.rightChild
+            }
+            currentStorage.functions[treeNode.nName] = treeNode
             break
         case "FUNC_CALL":
+            let newStorage = new storage()
+            newStorage.parent = currentStorage
+            let theFunction = currentStorage.functions[treeNode.nName]
+            while (theFunction == null) {
+                if (currentStorage.parent == null) {
+                    throw "[ERROR] " + treeNode.nName + " is not defined"
+                }
+                theFunction = currentStorage.parent.functions[treeNode.nName]
+            }
+            let number = Object.getOwnPropertyNames(theFunction.parameters).length
+            let parameter2 = treeNode.leftChild
+            for (i in theFunction.parameters) {
+                if (parameter2 == null) {
+                    throw "[ERROR] at function '" + treeNode.nName + "'\nTypeError: needs exactly " + number + " parameters"
+                }
+                newStorage.variables[i] = execute(parameter2, currentStorage)
+                parameter2 = parameter2.leftChild
+            }
+            if (parameter2 != null) {
+                throw "[ERROR] at function '" + treeNode.nName + "'\nTypeError: needs exactly " + number + " parameters"
+            }
+            console.log(theFunction)
+            console.log(newStorage)
             break
         case "LOOP":
             break
@@ -158,7 +188,7 @@ function handlerEXPR(treeNode, currentStorage) {
             value = true
             break
         default:
-            break;
+            break
     }
     return value
 }
