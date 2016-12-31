@@ -1,3 +1,5 @@
+const resultTextarea = $('#result')
+
 class storage{
 	constructor(parent = null, variables = {}, functions = {}) {
 		this.parent = parent
@@ -40,6 +42,14 @@ function execute(treeNode, currentStorage) {
         case "BRANCH":
             break
         case "RESERVED":
+            switch (treeNode.nName) {
+                case "print":
+                    resultTextarea.append(execute(treeNode.leftChild, currentStorage))
+                    resultTextarea.append('\n')
+                    break
+                default:
+                    break
+            }
             break
         case "IDENTIFIER":
             return currentStorage.variables[treeNode.nName]
