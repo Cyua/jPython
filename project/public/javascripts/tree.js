@@ -585,9 +585,10 @@ function assignParser(lexResult, line, startIndex, endIndex){
 		"node":new treeNode(),
 	};
 
-	if(startIndex == 0){
-		res.line = line + 1;
-	}
+	//if(startIndex == 0){
+	//	res.line = line + 1;
+	//}
+	res.line = line + 1;
 	res.node.nType = "ASSIGN";
 	res.node.nName = lexResult[line][startIndex+1].value;
 	res.node.leftChild = buildIdentifier(lexResult[line][startIndex]);
