@@ -31,11 +31,12 @@ function enterField(fieldName, type){
 		var tempField = curField;
 		while(tempField != null){
 			if (tempField.fieldName == fieldName)
-				throw "[ERROR] at function definition " + fieldName + "\nSyntaxError: duplicated function name";
+				throw "[ERROR] at function ' " + fieldName + "'\nSyntaxError: duplicated function name";
 			tempField = tempField.parentPtr;
 		}
-		if(fieldName in funcNameList){
-			throw "[ERROR] at function definition " + fieldName + "\nSyntaxError: duplicated function name";
+		for(var i = 0; i < funcNameList.length; i++){
+			if(fieldName == funcNameList[i])
+				throw "[ERROR] at function '" + fieldName + "'\nSyntaxError: duplicated function name";
 		}
 		funcNameList.push(fieldName);
 	}
@@ -51,7 +52,16 @@ function leaveField(){
 }
 
 function getFieldName(){
-	return curField.fieldName;
+	var tempField = curField;
+	while(tempField != null){
+		if(tempField.fieldName == "while" || tempField.fieldName == "if" || tempField.fieldName == "else" || tempField.fieldName == "for"){
+			tempField = tempField.parentPtr;
+			continue;
+		}else{
+			return tempField.fieldName;
+		}
+	}
+	return "global";
 }
 
 function getCurLevel(){
@@ -188,11 +198,6 @@ function parseDispatch(lexResult, line, startIndex, endIndex){
 			throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
 		}
 	}
-	//TODO: func_call
-	if(lexResult[line].length >= 3 && lexResult[line][startIndex].category == "identifier" && 
-		lexResult[line][startIndex+1].type == "LPAREN" && lexResult[line][endIndex-1].type == "RPAREN"){
-			return funCallParser();
-		}
 
 	if(lexResult[line][startIndex].type == "MLPAREN" && lexResult[line][endIndex - 1].type == "MRPAREN"){
 		//TODO: list
@@ -212,6 +217,12 @@ function parseDispatch(lexResult, line, startIndex, endIndex){
 		if(indentCnt > 0 && getCurLevel() != indentCnt){
 			throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid indents";
 		}
+
+		if(lexResult[line].length >= 3 && lexResult[line][startIndex].category == "identifier" && 
+			lexResult[line][startIndex+1].type == "LPAREN" && lexResult[line][endIndex-1].type == "RPAREN"){
+				return funCallParser(lexResult, line, startIndex, endIndex);
+		}
+
 		if(token.category == "reserved"){
 			if(token.type == "DEF")	{
 				if(index != startIndex){
@@ -253,8 +264,34 @@ function parseDispatch(lexResult, line, startIndex, endIndex){
 }
 
 
-function funCallParser(){
-	throw "funCallParser is under developing...";
+function funCallParser(lexResult, line, startIndex, endIndex){
+	var res = {
+		"line": line+1,
+		"node":null,
+	};
+	res.node.nType = "FUNC_CALL";
+	var func = lexResult[line][startIndex];
+	res.node.nName = func.value;
+	res.node.leftChild = funCallArgsParse(lexResult, line, startIndex+2, endIndex);
+	return res;
+}
+
+
+function funCallArgsParse(lexResult, line, startIndex, endIndex){
+	if(startIndex >= endIndex){
+		return null;
+	}
+	var res = null;
+	var token = lexResult[line][startIndex];
+	if(token.type == "IDENTIFIER"){
+		res = buildIdentifier(token);
+	}else if(token.type == "NUMBER"){
+		res = buildConst(token);
+	}else{
+		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid function args";
+	}
+	res.leftChild = funCallArgsParse(lexResult, line, startIndex+2, endIndex);
+	return res;
 }
 
 
@@ -279,12 +316,12 @@ function funDefParser(lexResult, line, startIndex, endIndex){
 	var curIndents = getCurLevel();
 	var i = line + 1;
 	for(; i < lexResult.length; i++){
-		if(calcIndentLevel(lexResult, i) != curIndents){
+		if(calcIndentLevel(lexResult, i) < curIndents){
 			break;
 		}
 	}
 	if(i == line+1){
-		throw "[ERROR] at line " + (line+2) + "\nSyntaxError: expected indents";
+		throw "[ERROR] at line " + (line+2) + "\nSyntaxError: expect indents";
 	}
 	res.line = i
 	res.node = new treeNode();
@@ -304,6 +341,7 @@ function funDefParser(lexResult, line, startIndex, endIndex){
 		tempNode = tempNode.next;
 	}
 	res.node.rightChild = res.node.rightChild.next;
+	leaveField();
 	return res;
 }
 
@@ -325,7 +363,7 @@ function printParser(lexResult, line, startIndex, endIndex){
 	if(endIndex - startIndex != 2)
 		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
 	var token = lexResult[line][startIndex+1];
-	if(token.type != "IDENTIFIER" && token.category != "NUMBER" && token.category != "FUNC_CALL"){
+	if(token.type != "IDENTIFIER" && token.category != "NUMBER" && token.category != "FUNC_CALL" && token.category != "STRING"){
 		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
 	}
 	var res = {
@@ -358,7 +396,7 @@ function whileParser(lexResult, line, startIndex, endIndex){
 		}
 	}
 	if(i == line+1){
-		throw "[ERROR] at line " + (line+2) + "\nSyntaxError: expected indents";
+		throw "[ERROR] at line " + (line+2) + "\nSyntaxError: expect indents";
 	}
 	
 	res.line = i;
