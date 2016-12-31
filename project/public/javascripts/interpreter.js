@@ -64,6 +64,11 @@ function execute(treeNode, currentStorage) {
             if (parameter2 != null) {
                 throw "[ERROR] at function '" + treeNode.nName + "'\nTypeError: needs exactly " + number + " parameters"
             }
+            let single_input = theFunction.rightChild
+            while (single_input != null) {
+                execute(single_input, newStorage)
+                single_input = single_input.next
+            }
             console.log(theFunction)
             console.log(newStorage)
             break
