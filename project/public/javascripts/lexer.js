@@ -3,7 +3,7 @@ function getNextToken(line,str){
 	var Token = new Object() 
     var inter = /^[0-9]+$/;
     var real = /^\d+\.\d+$/;
-    var id = /^([A-Za-z]|_)\w+$/;
+    var id = /^[A-Za-z]|_\w$/;
 	if(inter.test(str)==true){
 		Token.category = "number";
 		Token.type = "INTEGER_CONST";
@@ -196,7 +196,7 @@ function getToken(line){
 	var tokens = new Array();
 	var i = 0;
 	while (line[0]==" "){
-		tokens[i] = getNextToken("INDENT");
+		tokens[i] = getNextToken(0,"INDENT");
 		//tokens[i] = "INDENT";
 		line = line.slice(4);
 		//alert("wrong")
@@ -296,7 +296,7 @@ function getToken(line){
 	}
 	for (j=0,m=0;m<linearr.length;j++,m++){
 		if(linearr[j]=="not"&&linearr[j+1]=="in"){
-	   		tokens[j+i] = getNextToken("not in");
+	   		tokens[j+i] = getNextToken(m,"not in");
 	   		m = m + 1
 	    }
 	    else{
