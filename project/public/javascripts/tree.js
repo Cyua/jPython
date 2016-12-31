@@ -225,6 +225,12 @@ function parseDispatch(lexResult, line, startIndex, endIndex){
 				}else{
 					return whileParser(lexResult, line, startIndex, endIndex);
 				}
+			}else if(token.type == "PRINT"){
+				if(index != startIndex){
+					throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+				}else{
+					return printParser(lexResult, line, startIndex, endIndex);
+				}
 			}
 		}
 		if(token.category == "signals"){
@@ -255,7 +261,7 @@ function funCallParser(){
 function funDefParser(lexResult, line, startIndex, endIndex){
 	if(endIndex - startIndex < 5)
 		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid function definition";
-	if(lexResult[line][startIndex+1].type != "INDENTIFIER")
+	if(lexResult[line][startIndex+1].type != "IDENTIFIER")
 		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid function definition";
 	if(lexResult[line][startIndex+2].type != "LPAREN")
 		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid function definition";
@@ -273,7 +279,7 @@ function funDefParser(lexResult, line, startIndex, endIndex){
 	var curIndents = getCurLevel();
 	var i = line + 1;
 	for(; i < lexResult.length; i++){
-		if(calcIndentLevel(i) != curIndents){
+		if(calcIndentLevel(lexResult, i) != curIndents){
 			break;
 		}
 	}
@@ -286,6 +292,17 @@ function funDefParser(lexResult, line, startIndex, endIndex){
 	res.node.nName = funcName;
 	var funArgs = parseFuncArgs(lexResult, line, startIndex+3, endIndex-2);
 	res.node.leftChild = funArgs;
+	var lineNum = line+1;
+	res.node.rightChild = new treeNode();
+	var tempNode = res.node.rightChild;
+	while(lineNum < i){
+		var tempRes = parseDispatch(lexResult, lineNum, 0, lexResult[lineNum].length);
+		if(tempRes == null)
+			throw "parse failed";
+		lineNum = tempRes.line;
+		tempNode.next = tempRes.node;
+		tempNode = tempNode.next;
+	}
 	return res;
 }
 
@@ -297,8 +314,27 @@ function parseFuncArgs(lexResult, line, startIndex, endIndex){
 	if(token.type != "IDENTIFIER"){
 		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid function args";
 	}
-	var res = buildIdentifier();
+	var res = buildIdentifier(token);
 	res.rightChild = parseFuncArgs(lexResult, line, startIndex+2, endIndex);
+	return res;
+}
+
+
+function printParser(lexResult, line, startIndex, endIndex){
+	if(endIndex - startIndex != 2)
+		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+	var token = lexResult[line][startIndex+1];
+	if(token.type != "IDENTIFIER" && token.category != "NUMBER" && token.category != "FUNC_CALL"){
+		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+	}
+	var res = {
+		"line":line+1,
+		"node":new treeNode(),
+	}
+	var leftRes = parseDispatch(lexResult, line, startIndex+1, endIndex);
+	res.node.nType = "RESERVED";
+	res.node.nName = "print";
+	res.node.leftChild = leftRes.node;
 	return res;
 }
 
@@ -308,7 +344,7 @@ function whileParser(lexResult, line, startIndex, endIndex){
 		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
 	if(lexResult[line][endIndex-1].type != "COLON")
 		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
-	enterField("while", "while");
+	enterField("global", "while");
 	var res = {
 		"line":null,
 		"node":null,
@@ -316,7 +352,7 @@ function whileParser(lexResult, line, startIndex, endIndex){
 	var curIndents = getCurLevel();
 	var i = line + 1;
 	for(; i < lexResult.length; i++){
-		if(calcIndentLevel(i) != curIndents){
+		if(calcIndentLevel(lexResult, i) != curIndents){
 			break;
 		}
 	}
