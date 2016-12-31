@@ -82,7 +82,6 @@ function parseTree(lexResult){
 	prevNode = root;
 	errCode = null;
 	funcNameList = [];
-	console.log(lexResult);
 
 	while(line < lexResult.length){
 		var tempRes = parseDispatch(lexResult, line, 0, lexResult[line].length);
@@ -267,12 +266,12 @@ function parseDispatch(lexResult, line, startIndex, endIndex){
 function funCallParser(lexResult, line, startIndex, endIndex){
 	var res = {
 		"line": line+1,
-		"node":null,
+		"node":new treeNode(),
 	};
 	res.node.nType = "FUNC_CALL";
 	var func = lexResult[line][startIndex];
 	res.node.nName = func.value;
-	res.node.leftChild = funCallArgsParse(lexResult, line, startIndex+2, endIndex);
+	res.node.leftChild = funCallArgsParse(lexResult, line, startIndex+2, endIndex-1);
 	return res;
 }
 
