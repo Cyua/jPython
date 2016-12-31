@@ -11,21 +11,35 @@ class treeNode{
 }
 
 class field{
-	constructor(parentPtr, fieldName){
+	constructor(parentPtr, fieldName, level=0){
 		this.parentPtr = parentPtr;
 		this.fieldName = fieldName;
+		this.level = level;
 	}
 }
 
-var globalField = new field(null, "global");
+var globalField = new field(null, "global", 0);
 var curField = globalField;
 var root = new treeNode();
 var prevNode = root;
 var errCode = null;
+var funcNameList = [];
 
 //函数作用域相关
-function enterField(fieldName){
-	var newField = new field(curField, fieldName);
+function enterField(fieldName, type){
+	if(type == "func"){
+		var tempField = curField;
+		while(tempField != null){
+			if (tempField.fieldName == fieldName)
+				throw "[ERROR] at function definition " + fieldName + "\nSyntaxError: duplicated function name";
+			tempField = tempField.parentPtr;
+		}
+		if(fieldName in funcNameList){
+			throw "[ERROR] at function definition " + fieldName + "\nSyntaxError: duplicated function name";
+		}
+		funcNameList.push(fieldName);
+	}
+	var newField = new field(curField, fieldName, getCurLevel()+1);
 	curField = newField;
 }
 
@@ -38,6 +52,10 @@ function leaveField(){
 
 function getFieldName(){
 	return curField.fieldName;
+}
+
+function getCurLevel(){
+	return curField.level;
 }
 
 
@@ -53,6 +71,7 @@ function parseTree(lexResult){
 	root = new treeNode();
 	prevNode = root;
 	errCode = null;
+	funcNameList = [];
 	console.log(lexResult);
 
 	while(line < lexResult.length){
@@ -64,6 +83,21 @@ function parseTree(lexResult){
 		prevNode = prevNode.next;
 	}
 	return root;	
+}
+
+
+function calcIndentLevel(lexResult, line){
+	var cnt = 0;
+	for(var index = 0; index < lexResult[line].length; index ++){
+		var token = lexResult[line][index];
+		if(token.type == "INDENT"){
+			cnt += 1;
+			continue;
+		}else{
+			break;
+		}
+	}
+	return cnt;
 }
 
 
@@ -136,6 +170,10 @@ function parseDispatch(lexResult, line, startIndex, endIndex){
 		"node":null,
 	};
 
+	if(startIndex >= endIndex){
+		return res;
+	}
+
 	if(startIndex == endIndex - 1){
 		var token = lexResult[line][startIndex];
 		if(token.category == "identifier"){
@@ -163,17 +201,35 @@ function parseDispatch(lexResult, line, startIndex, endIndex){
 		return res;
 	}
 	
+	var indentCnt = 0;
 	for(var index = startIndex; index < endIndex; index++){
 		var token = lexResult[line][index];	
+		if(token.type == "INDENT"){
+			indentCnt += 1;	
+			startIndex = index + 1;
+			continue;
+		}
+		if(indentCnt > 0 && getCurLevel() != indentCnt){
+			throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid indents";
+		}
 		if(token.category == "reserved"){
-		
+			if(token.type == "DEF")	{
+				if(index != startIndex){
+					throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+				}else{
+					return funDefParser(lexResult, line, startIndex, endIndex);
+				}
+			}else if(token.type == "WHILE"){
+				if(index != startIndex){
+					throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+				}else{
+					return whileParser(lexResult, line, startIndex, endIndex);
+				}
+			}
 		}
 		if(token.category == "signals"){
 			if(token.type == "COLON"){
 				console.log("COLON");
-
-			}else if(token.type == "INDENT"){
-				continue;
 			}else if(token.type == "COMMA"){
 
 			}
@@ -193,6 +249,83 @@ function parseDispatch(lexResult, line, startIndex, endIndex){
 
 function funCallParser(){
 	throw "funCallParser is under developing...";
+}
+
+
+function funDefParser(lexResult, line, startIndex, endIndex){
+	if(endIndex - startIndex < 5)
+		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid function definition";
+	if(lexResult[line][startIndex+1].type != "INDENTIFIER")
+		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid function definition";
+	if(lexResult[line][startIndex+2].type != "LPAREN")
+		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid function definition";
+	if(lexResult[line][endIndex-1].type != "COLON")
+		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid function definition";
+	if(lexResult[line][endIndex-2].type != "RPAREN")
+		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid function definition";
+	var funcNameNode = lexResult[line][startIndex+1];
+	var funcName = funcNameNode.value;
+	enterField(funcName, "func");
+	var res = {
+		"line":null,
+		"node":null,
+	};
+	var curIndents = getCurLevel();
+	var i = line + 1;
+	for(; i < lexResult.length; i++){
+		if(calcIndentLevel(i) != curIndents){
+			break;
+		}
+	}
+	if(i == line+1){
+		throw "[ERROR] at line " + (line+2) + "\nSyntaxError: expected indents";
+	}
+	res.line = i
+	res.node = new treeNode();
+	res.node.nType = "FUNC";
+	res.node.nName = funcName;
+	var funArgs = parseFuncArgs(lexResult, line, startIndex+3, endIndex-2);
+	res.node.leftChild = funArgs;
+	return res;
+}
+
+
+function parseFuncArgs(lexResult, line, startIndex, endIndex){
+	if(startIndex >= endIndex)
+		return null;
+	var token = lexResult[line][startIndex];
+	if(token.type != "IDENTIFIER"){
+		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid function args";
+	}
+	var res = buildIdentifier();
+	res.rightChild = parseFuncArgs(lexResult, line, startIndex+2, endIndex);
+	return res;
+}
+
+
+function whileParser(lexResult, line, startIndex, endIndex){
+	if(endIndex - startIndex < 3)
+		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+	if(lexResult[line][endIndex-1].type != "COLON")
+		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+	enterField("while", "while");
+	var res = {
+		"line":null,
+		"node":null,
+	};
+	var curIndents = getCurLevel();
+	var i = line + 1;
+	for(; i < lexResult.length; i++){
+		if(calcIndentLevel(i) != curIndents){
+			break;
+		}
+	}
+	if(i == line+1){
+		throw "[ERROR] at line " + (line+2) + "\nSyntaxError: expected indents";
+	}
+	
+	res.line = i;
+	//TODO:while
 }
 
 
