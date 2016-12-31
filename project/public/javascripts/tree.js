@@ -363,7 +363,7 @@ function printParser(lexResult, line, startIndex, endIndex){
 	if(endIndex - startIndex != 2)
 		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
 	var token = lexResult[line][startIndex+1];
-	if(token.type != "IDENTIFIER" && token.category != "NUMBER" && token.category != "FUNC_CALL" && token.category != "STRING"){
+	if(token.type != "IDENTIFIER" && token.category != "number"){
 		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
 	}
 	var res = {
