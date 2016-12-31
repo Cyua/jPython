@@ -284,7 +284,7 @@ function funCallArgsParse(lexResult, line, startIndex, endIndex){
 	var token = lexResult[line][startIndex];
 	if(token.type == "IDENTIFIER"){
 		res = buildIdentifier(token);
-	}else if(token.type == "NUMBER"){
+	}else if(token.category == "number"){
 		res = buildConst(token);
 	}else{
 		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid function args";
