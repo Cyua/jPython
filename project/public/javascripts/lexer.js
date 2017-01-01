@@ -1,5 +1,5 @@
 function getNextToken(line,str){
-	var RESERVED_KEYWORDS = new Array('def','break','if','else','elif','for','and','or','not','continue','while','return','print');
+	var RESERVED_KEYWORDS = new Array('def','break','if','else','elif','for','and','or','not','continue','while','return','print','True','False','range');
 	var Token = new Object() 
     var inter = /^[0-9]+$/;
     var real = /^\d+\.\d+$/;
@@ -157,7 +157,7 @@ function getNextToken(line,str){
 			break;
 		case "]":
 			Token.category = "brackets";
-			Token.type = "MLPAREN";
+			Token.type = "MR，PAREN";
 			Token.value = str;
 			break;
 		//signal
