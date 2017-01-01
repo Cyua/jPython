@@ -273,6 +273,12 @@ function parseDispatch(lexResult, line, startIndex, endIndex){
 				}else{
 					return loopCtrlParser(lexResult, line, startIndex, endIndex);
 				}
+			}else if(token.type == "IF"){
+				if(index != startIndex){
+					throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+				}else{
+					return branchParser(lexResult, line, startIndex, endIndex);
+				}
 			}
 		}
 		if(token.category == "signals"){
@@ -374,6 +380,11 @@ function funDefParser(lexResult, line, startIndex, endIndex){
 	res.node.rightChild = res.node.rightChild.next;
 	leaveField();
 	return res;
+}
+
+
+function branchParser(lexResult, line, startIndex, endIndex){
+	throw "branch is under developing...";
 }
 
 
