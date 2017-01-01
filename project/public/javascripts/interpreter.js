@@ -87,12 +87,15 @@ function execute(treeNode, currentStorage) {
 				}
 				return e
 			}
-            console.log(theFunction)
-            console.log(newStorage)
             break
         case "LOOP":
             break
         case "BRANCH":
+			if (execute(treeNode.leftChild.leftChild, currentStorage)) {
+				execute(treeNode.leftChild.rightChild, currentStorage)
+			} else if (treeNode.rightChild != null) {
+				execute(treeNode.rightChild.rightChild, currentStorage)
+			}
             break
         case "RESERVED":
             switch (treeNode.nName) {
