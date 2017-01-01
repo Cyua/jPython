@@ -53,6 +53,15 @@ function execute(treeNode, currentStorage) {
             currentStorage.functions[treeNode.nName] = treeNode
             break
         case "FUNC_CALL":
+			if (treeNode.nName === 'range') {
+				let rangeList = []
+				let lower = execute(treeNode.leftChild, currentStorage)
+				let upper = execute(treeNode.leftChild.leftChild, currentStorage)
+				for (let i = 0; i < upper - lower; i++) {
+					rangeList[i] = lower + i
+				}
+				return rangeList
+			}
             let newStorage = new storage()
             newStorage.parent = currentStorage
             let theFunction = currentStorage.functions[treeNode.nName]
