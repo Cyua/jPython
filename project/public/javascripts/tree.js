@@ -409,7 +409,7 @@ function whileParser(lexResult, line, startIndex, endIndex){
 		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
 	if(lexResult[line][endIndex-1].type != "COLON")
 		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
-	enterField("global", "while");
+	enterField(getFieldName(), "while");
 	var res = {
 		"line":null,
 		"node":null,
@@ -417,16 +417,33 @@ function whileParser(lexResult, line, startIndex, endIndex){
 	var curIndents = getCurLevel();
 	var i = line + 1;
 	for(; i < lexResult.length; i++){
-		if(calcIndentLevel(lexResult, i) != curIndents){
+		if(calcIndentLevel(lexResult, i) < curIndents){
 			break;
 		}
 	}
-	if(i == line+1){
+	if(i == line + 1){
 		throw "[ERROR] at line " + (line+2) + "\nSyntaxError: expect indents";
 	}
 	
 	res.line = i;
-	//TODO:while
+	res.node = new treeNode();
+	res.node.nType = "LOOP"
+	res.node.nName = "WHILE"
+	var caseRes = parseDispatch(lexResult, line, startIndex+1, endIndex-1);
+	res.node.leftChild = caseRes.node;
+	var tempLine = line + 1;
+	res.node.rightChild = new treeNode();
+	var tempNode = res.node.rightChild;
+	while(tempLine < i){
+		console.log(tempLine);
+		var tempRes = parseDispatch(lexResult, tempLine, 0, lexResult[tempLine].length);
+		tempNode.next = tempRes.node;
+		tempNode = tempNode.next;
+		tempLine = tempRes.line;
+	}
+	res.node.rightChild = res.node.rightChild.next;
+	leaveField();
+	return res;
 }
 
 
