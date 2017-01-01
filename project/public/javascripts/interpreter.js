@@ -108,7 +108,6 @@ function execute(treeNode, currentStorage) {
 									forBody = forBody.next
 								}
 							} catch (e) {
-								console.log("HHHHHHHHHHHHHHHHHH")
 								if (typeof(e) === 'object' && e.error) {
 									throw error
 								} else if (typeof(e) === 'object' && e.value === 'break') {
@@ -137,9 +136,17 @@ function execute(treeNode, currentStorage) {
             break
         case "BRANCH":
 			if (execute(treeNode.leftChild.leftChild, currentStorage)) {
-				execute(treeNode.leftChild.rightChild, currentStorage)
+				let ifBody = treeNode.leftChild.rightChild
+				while (ifBody != null) {
+					execute(ifBody, currentStorage)
+					ifBody = ifBody.next
+				}
 			} else if (treeNode.rightChild != null) {
-				execute(treeNode.rightChild.rightChild, currentStorage)
+				let elseBody = treeNode.rightChild.rightChild
+				while (elseBody != null) {
+					execute(elseBody, currentStorage)
+					elseBody = elseBody.next
+				}
 			}
             break
         case "RESERVED":
@@ -181,14 +188,18 @@ function execute(treeNode, currentStorage) {
             }
             break
         case "IDENTIFIER":
-			while (currentStorage.variables[treeNode.nName] === undefined) {
-				if (currentStorage.parent == null) {
-					error.value = "[ERROR]\nNameError: name '" + treeNode.nName + "' is not defined"
-					throw error
-				} else {
-					currentStorage = currentStorage.parent
-				}
-			}
+			// while (currentStorage.variables[treeNode.nName] === undefined) {
+			// 	if (currentStorage.parent == null) {
+			// 		error.value = "[ERROR]\nNameError: name '" + treeNode.nName + "' is not defined"
+			// 		throw error
+			// 	} else {
+			// 		currentStorage = currentStorage.parent
+			// 	}
+			// }
+			// if (currentStorage.variables[treeNode.nName] === undefined) {
+			// 	error.value = "[ERROR]\nNameError: name '" + treeNode.nName + "' is not defined"
+			// 	throw error
+			// }
             return currentStorage.variables[treeNode.nName]
             break
         case "ASSIGN":
