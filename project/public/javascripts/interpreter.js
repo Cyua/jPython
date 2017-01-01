@@ -56,12 +56,14 @@ function execute(treeNode, currentStorage) {
             let newStorage = new storage()
             newStorage.parent = currentStorage
             let theFunction = currentStorage.functions[treeNode.nName]
+			let tempStorage = currentStorage
             while (theFunction == null) {
-                if (currentStorage.parent == null) {
+                if (tempStorage.parent == null) {
 					error.value = "[ERROR] " + treeNode.nName + " is not defined"
                     throw error
                 } else {
-					theFunction = currentStorage.parent.functions[treeNode.nName]
+					theFunction = tempStorage.parent.functions[treeNode.nName]
+					tempStorage = tempStorage.parent
 				}
             }
             let number = Object.getOwnPropertyNames(theFunction.parameters).length
