@@ -131,6 +131,34 @@ function execute(treeNode, currentStorage) {
 					}
 					break
 				case "WHILE":
+					try {
+						while (execute(treeNode.leftChild, currentStorage)) {
+							try {
+								let whileBody = treeNode.rightChild
+								while (whileBody != null) {
+									execute(whileBody, currentStorage)
+									whileBody = whileBody.next
+								}
+							} catch (e) {
+								if (typeof(e) === 'object' && e.error) {
+									throw error
+								} else if (typeof(e) === 'object' && e.value === 'break') {
+									throw error
+								} else if (typeof(e) === 'object' && e.value === 'continue') {
+								} else {
+									return e
+								}
+							}
+						}
+					} catch (e) {
+						if (typeof(e) === 'object' && e.error) {
+							throw error
+						} else if (typeof(e) === 'object' && e.value === 'break') {
+							throw error
+						} else {
+							return e
+						}
+					}
 					break
 				default:
 					break
