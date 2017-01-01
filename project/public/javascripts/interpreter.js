@@ -93,6 +93,8 @@ function execute(treeNode, currentStorage) {
 					let printValue = execute(treeNode.leftChild, currentStorage)
 					if (typeof(printValue) === 'object') {
 						handlerPRINTLIST(printValue)
+					} else if (printValue === false) {
+						resultTextarea.append('false')
 					} else {
 						resultTextarea.append(printValue)
 					}
@@ -100,6 +102,13 @@ function execute(treeNode, currentStorage) {
                     break
 				case "return":
 					throw execute(treeNode.leftChild, currentStorage)
+					break
+				case "true":
+					return true
+					break
+				case "false":
+					return false
+					break
                 default:
                     break
             }
