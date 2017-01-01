@@ -135,7 +135,23 @@ function buildConst(token){
 
 
 function buildList(lexResult, line, startIndex, endIndex){
-	return null;	
+	if(startIndex >= endIndex)
+		return null;
+	var res = {
+		"line": line+1,
+		"node": null,
+	}
+	var token = lexResult[line][startIndex];
+	if(token.category == "number"){
+		res.node = buildConst(token);
+	}else if(token.type == "IDENTIFIER"){
+		res.node = buildIdentifier(token);
+	}else{
+		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid list member";
+	}
+
+	res.node.rightChild = buildList(lexResult, line, startIndex + 2, endIndex);
+	return res;
 }
 
 
@@ -200,10 +216,7 @@ function parseDispatch(lexResult, line, startIndex, endIndex){
 	}
 
 	if(lexResult[line][startIndex].type == "MLPAREN" && lexResult[line][endIndex - 1].type == "MRPAREN"){
-		//TODO: list
-		res.line = line + 1;	
-		res.node = buildList(lexResult, line, startIndex, endIndex);
-		return res;
+		return buildList(lexResult, line, startIndex+1, endIndex-1);
 	}
 	
 	var indentCnt = 0;
@@ -473,7 +486,6 @@ function whileParser(lexResult, line, startIndex, endIndex){
 	res.node.rightChild = new treeNode();
 	var tempNode = res.node.rightChild;
 	while(tempLine < i){
-		console.log(tempLine);
 		var tempRes = parseDispatch(lexResult, tempLine, 0, lexResult[tempLine].length);
 		tempNode.next = tempRes.node;
 		tempNode = tempNode.next;
