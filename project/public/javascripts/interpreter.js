@@ -1,5 +1,8 @@
 const resultTextarea = $('#result')
-let error = {"error": true}
+let error = {
+	"error": true
+}
+let loopKeyword = {}
 
 class storage{
 	constructor(parent = null, variables = {}, functions = {}) {
@@ -24,7 +27,6 @@ function execute(treeNode, currentStorage) {
         return
     }
     console.log(treeNode)
-    console.log(currentStorage)
     switch (treeNode.nType) {
         case "NUMBER":
             return parseInt(treeNode.nValue)
@@ -58,8 +60,9 @@ function execute(treeNode, currentStorage) {
                 if (currentStorage.parent == null) {
 					error.value = "[ERROR] " + treeNode.nName + " is not defined"
                     throw error
-                }
-                theFunction = currentStorage.parent.functions[treeNode.nName]
+                } else {
+					theFunction = currentStorage.parent.functions[treeNode.nName]
+				}
             }
             let number = Object.getOwnPropertyNames(theFunction.parameters).length
             let parameter2 = treeNode.leftChild
@@ -89,6 +92,48 @@ function execute(treeNode, currentStorage) {
 			}
             break
         case "LOOP":
+			let loopType = treeNode.nName
+			switch (loopType) {
+				case "FOR":
+					let forI
+					let forCaseIName = treeNode.leftChild.leftChild.nName
+					let forCaseList = execute(treeNode.leftChild.rightChild, currentStorage)
+					try {
+						for (forI = 0; forI < forCaseList.length; forI++) {
+							try {
+								currentStorage.variables[forCaseIName] = forCaseList[forI]
+								let forBody = treeNode.rightChild
+								while (forBody != null) {
+									execute(forBody, currentStorage)
+									forBody = forBody.next
+								}
+							} catch (e) {
+								console.log("HHHHHHHHHHHHHHHHHH")
+								if (typeof(e) === 'object' && e.error) {
+									throw error
+								} else if (typeof(e) === 'object' && e.value === 'break') {
+									throw error
+								} else if (typeof(e) === 'object' && e.value === 'continue') {
+								} else {
+									return e
+								}
+							}
+						}
+					} catch (e) {
+						if (typeof(e) === 'object' && e.error) {
+							throw error
+						} else if (typeof(e) === 'object' && e.value === 'break') {
+							throw error
+						} else {
+							return e
+						}
+					}
+					break
+				case "WHILE":
+					break
+				default:
+					break
+			}
             break
         case "BRANCH":
 			if (execute(treeNode.leftChild.leftChild, currentStorage)) {
@@ -123,11 +168,27 @@ function execute(treeNode, currentStorage) {
 				case "false":
 					return false
 					break
+				case "continue":
+					loopKeyword.value = 'continue'
+					throw loopKeyword
+					break
+				case "break":
+					loopKeyword.value = 'break'
+					throw loopKeyword
+					break
                 default:
                     break
             }
             break
         case "IDENTIFIER":
+			while (currentStorage.variables[treeNode.nName] === undefined) {
+				if (currentStorage.parent == null) {
+					error.value = "[ERROR]\nNameError: name '" + treeNode.nName + "' is not defined"
+					throw error
+				} else {
+					currentStorage = currentStorage.parent
+				}
+			}
             return currentStorage.variables[treeNode.nName]
             break
         case "ASSIGN":
@@ -227,7 +288,7 @@ function handlerEXPR(treeNode, currentStorage) {
         case "IN":
             for (i in operand2) {
                 if (operand1 === operand2[i]) {
-                    value = true
+                    return true
                 }
             }
             value = false
@@ -235,7 +296,7 @@ function handlerEXPR(treeNode, currentStorage) {
         case "NOTIN":
             for (i in operand2) {
                 if (operand1 === operand2[i]) {
-                    value = false
+                    return false
                 }
             }
             value = true
