@@ -1,8 +1,9 @@
-var mTextarea = $('#editor')[0]
-var codemirrorEditor = CodeMirror.fromTextArea(mTextarea, {
+const mTextarea = $('#editor')[0]
+const codemirrorEditor = CodeMirror.fromTextArea(mTextarea, {
     lineNumbers: true,
     indentUnit: 4
 })
+
 function btnClick() {
     try {
         var lexResult = Lex();
@@ -23,4 +24,5 @@ function btnClick() {
         console.log(e);
         return;
     }
+    resultTextarea.append('\n')
 }

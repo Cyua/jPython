@@ -1,23 +1,27 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title><%= title %></title>
-    <link rel='stylesheet' href='/stylesheets/style.css' />
-    <link rel='stylesheet' href='/stylesheets/codemirror.css' />
-    <link rel='stylesheet' href='http://cdn.bootcss.com/bootstrap/3.3.0/css/bootstrap.min.css'>
-    <script src='http://cdn.bootcss.com/jquery/1.11.1/jquery.min.js'></script>
-    <script src='http://cdn.bootcss.com/bootstrap/3.3.0/js/bootstrap.min.js'></script>
-  </head>
-  <body>
-    <h1><%= title %></h1>
-    <textarea id='editor' name='editor'></textarea>
-	<button onclick="btnClick()">Run</button>
-    <textarea id='result' name='result'></textarea>
-    <script src='controllers/codemirror.js'></script>
-    <script src='controllers/python.js'></script>
-    <script src='controllers/editor.js'></script>
-    <script src='javascripts/lexer.js'></script>
-    <script src='javascripts/tree.js'></script>
-    <script src='javascripts/interpreter.js'></script>
-  </body>
+    <head>
+        <title><%= title %></title>
+        <link rel='stylesheet' href='/stylesheets/style.css' />
+        <link rel='stylesheet' href='/stylesheets/codemirror.css' />
+        <link rel='stylesheet' href='http://cdn.bootcss.com/bootstrap/3.3.0/css/bootstrap.min.css'>
+        <script src='http://cdn.bootcss.com/jquery/1.11.1/jquery.min.js'></script>
+        <script src='http://cdn.bootcss.com/bootstrap/3.3.0/js/bootstrap.min.js'></script>
+    </head>
+    <body>
+        <div class='jp-bar'>
+            <h1 class='jp-title'><%= title %></h1>
+            <button class='btn btn-success btn-lg jp-btn' onclick="btnClick()">Run</button>
+        </div>
+        <div class='jp-content'>
+            <textarea id='editor' name='editor'></textarea>
+            <textarea id='result' name='result' readonly></textarea>
+        </div>
+        <script src='controllers/codemirror.js'></script>
+        <script src='controllers/python.js'></script>
+        <script src='controllers/editor.js'></script>
+        <script src='javascripts/lexer.js'></script>
+        <script src='javascripts/tree.js'></script>
+        <script src='javascripts/interpreter.js'></script>
+    </body>
 </html>

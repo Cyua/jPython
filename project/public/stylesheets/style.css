@@ -6,3 +6,33 @@ body {
 a {
   color: #00B7FF;
 }
+
+.jp-bar {
+    height: 80px;
+}
+
+.jp-title {
+    float: left;
+}
+
+.jp-btn {
+    margin-top: 10px;
+    margin-left: 40px;
+    width: 100px;
+    font-size: 24px !important;
+    font-weight: bolder !important;
+}
+
+.jp-content {
+}
+
+#result {
+    float: right;
+    width: 48%;
+    height: 750px;
+    background: black;
+    color: #61dc66;
+    font-size: 18px;
+    padding: 10px;
+    border: solid 1px #61dc66;
+}
