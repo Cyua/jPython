@@ -95,6 +95,10 @@ function execute(treeNode, currentStorage) {
 						handlerPRINTLIST(printValue)
 					} else if (printValue === false) {
 						resultTextarea.append('false')
+					} else if (typeof(printValue) === 'string') {
+						resultTextarea.append('"')
+						resultTextarea.append(printValue)
+						resultTextarea.append('"')
 					} else {
 						resultTextarea.append(printValue)
 					}
