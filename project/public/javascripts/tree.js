@@ -81,7 +81,7 @@ function parseTree(lexResult){
 	root = new treeNode();
 	prevNode = root;
 	errCode = null;
-	funcNameList = [];
+	funcNameList = ["range",];
 
 	while(line < lexResult.length){
 		var tempRes = parseDispatch(lexResult, line, 0, lexResult[line].length);
@@ -137,20 +137,16 @@ function buildConst(token){
 function buildList(lexResult, line, startIndex, endIndex){
 	if(startIndex >= endIndex)
 		return null;
-	var res = {
-		"line": line+1,
-		"node": null,
-	}
+	var res = null;
 	var token = lexResult[line][startIndex];
 	if(token.category == "number"){
-		res.node = buildConst(token);
+		res = buildConst(token);
 	}else if(token.type == "IDENTIFIER"){
-		res.node = buildIdentifier(token);
+		res = buildIdentifier(token);
 	}else{
 		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid list member";
 	}
-
-	res.node.rightChild = buildList(lexResult, line, startIndex + 2, endIndex);
+	res.rightChild = buildList(lexResult, line, startIndex + 2, endIndex);
 	return res;
 }
 
@@ -199,7 +195,6 @@ function parseDispatch(lexResult, line, startIndex, endIndex){
 	if(startIndex >= endIndex){
 		return res;
 	}
-
 	if(startIndex == endIndex - 1){
 		var token = lexResult[line][startIndex];
 		if(token.category == "identifier"){
@@ -210,13 +205,35 @@ function parseDispatch(lexResult, line, startIndex, endIndex){
 			res.line = line + 1;
 			res.node = buildConst(token);
 			return res;
+		}else if(token.type == "TRUE" || token.type == "FALSE"){
+			res.line = line + 1;
+			res.node = new treeNode();
+			res.node.nType = "RESERVED";
+			if(token.type == "TRUE")
+				res.node.nName = "true";
+			if(token.type == "FALSE")
+				res.node.nName = "false";
+			return res;
 		}else{
 			throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
 		}
 	}
 
+	if(endIndex - startIndex == 4){
+		if(lexResult[line][startIndex].type == "IDENTIFIER" && lexResult[line][startIndex+1].type == "MLPAREN" 
+			&& lexResult[line][startIndex+2].type == "INTEGER_CONST" && lexResult[line][startIndex+3].type == "MRPAREN")
+			res.line = line + 1;
+			res.node = buildIdentifier(lexResult[line][startIndex]);
+			res.node.nValue = lexResult[line][startIndex+2].value;
+			return res;
+	}
+
 	if(lexResult[line][startIndex].type == "MLPAREN" && lexResult[line][endIndex - 1].type == "MRPAREN"){
-		return buildList(lexResult, line, startIndex+1, endIndex-1);
+		res.line = line + 1;
+		res.node = new treeNode();
+		res.node.nType = "LIST";
+		res.node.rightChild = buildList(lexResult, line, startIndex+1, endIndex-1);
+		return res;
 	}
 	
 	var indentCnt = 0;
@@ -727,17 +744,16 @@ function assignParser(lexResult, line, startIndex, endIndex){
 		"line":null,
 		"node":new treeNode(),
 	};
-
-	//if(startIndex == 0){
-	//	res.line = line + 1;
-	//}
 	res.line = line + 1;
 	res.node.nType = "ASSIGN";
 	res.node.nName = lexResult[line][startIndex+1].value;
 	res.node.leftChild = buildIdentifier(lexResult[line][startIndex]);
 
 	var rightRes = parseDispatch(lexResult, line, startIndex+2, endIndex);
-	if(rightRes.node.nType == "FUNC" || rightRes.node.nType == "LOOP" || rightRes.node.nType == "RESERVED" || rightRes.node.nType == "BRANCH"){
+	if(rightRes.node.nType == "FUNC" || rightRes.node.nType == "LOOP" || rightRes.node.nType == "BRANCH"){
+		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+	}
+	if(rightRes.node.nType == "reserved" && (rightRes.node.nName != "true" && rightRes.node.nName != "false")){
 		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
 	}
 	res.node.rightChild = rightRes.node;
