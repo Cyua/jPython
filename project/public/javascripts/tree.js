@@ -294,7 +294,7 @@ function parseDispatch(lexResult, line, startIndex, endIndex){
 					return loopCtrlParser(lexResult, line, startIndex, endIndex);
 				}
 			}else if(token.type == "IF"){
-				if(index != startIndex){
+				if(index != startIndex || lexResult[line][endIndex-1].type != "COLON"){
 					throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
 				}else{
 					return branchParser(lexResult, line, startIndex, endIndex);
@@ -408,7 +408,86 @@ function funDefParser(lexResult, line, startIndex, endIndex){
 
 
 function branchParser(lexResult, line, startIndex, endIndex){
-	throw "branch is under developing...";
+	var ifLevel = getCurLevel();
+	enterField(getFieldName(), "if");
+	var i = line + 1;
+	var hasElse = false;
+	var elsPos = null;
+	for(; i < lexResult.length; i++){
+		if(calcIndentLevel(lexResult, i) < ifLevel)
+			break;
+		if(lexResult[i][ifLevel].type == "ELSE"){
+			hasElse = true;
+			elsePos = i;
+			break;
+		}
+		if(lexResult[i][ifLevel].type == "IF"){
+			break;
+		}
+	}
+
+	var res = {
+		"line":null,
+		"node":new treeNode(),
+	};
+	res.node.nType = "BRANCH";
+	res.node.leftChild = new treeNode();
+	var ifNode = res.node.leftChild;
+	ifNode.nType = "IF";
+	var caseRes = parseDispatch(lexResult, line, startIndex+1, endIndex-1);
+	ifNode.leftChild = caseRes.node;
+
+	i = line + 1;
+	for(; i < lexResult.length; i++){
+		if(calcIndentLevel(lexResult, i) <= ifLevel)
+			break;
+	}
+	res.line = i;
+	if(res.line == line + 1){
+		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+	}
+	var tempLine = line + 1;
+	ifNode.rightChild = new treeNode();
+	var tempNode = ifNode.rightChild;
+	while(tempLine < i){
+		var tempRes = parseDispatch(lexResult, tempLine, 0, lexResult[tempLine].length);
+		if(tempRes == null){
+			tempNode = null;
+		}
+		tempNode.next = tempRes.node;
+		tempNode = tempNode.next;
+		tempLine = tempRes.line;
+	}
+	ifNode.rightChild = ifNode.rightChild.next;		
+
+	if(hasElse == true){
+		res.node.rightChild = new treeNode();
+		var elseNode = res.node.rightChild;
+		elseNode.nType = "ELSE";
+		var j = elsePos + 1;
+		for(; j < lexResult.length; j++){
+			if(calcIndentLevel(lexResult, j) <= ifLevel)
+				break;
+		}
+		res.line = j;
+		if(res.line == elsePos + 1){
+			throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+		}
+		var tempLine = elsePos + 1;
+		elseNode.rightChild = new treeNode();
+		var tempNode = elseNode.rightChild;
+		while(tempLine < j){
+			var tempRes = parseDispatch(lexResult, tempLine, 0, lexResult[tempLine].length);
+			if(tempRes == null)
+				tempNode = null;
+			tempNode.next = tempRes.node;
+			tempNode = tempNode.next;
+			tempLine = tempRes.line;
+		}
+		elseNode.rightChild = elseNode.rightChild.next;
+	}
+	leaveField();
+	return res;
 }
 
 
