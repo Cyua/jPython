@@ -236,6 +236,12 @@ function parseDispatch(lexResult, line, startIndex, endIndex){
 				}else{
 					return whileParser(lexResult, line, startIndex, endIndex);
 				}
+			}else if(token.type == "FOR"){
+				if(index != startIndex){
+					throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+				}else{
+					return forParser(lexResult, line, startIndex, endIndex);	
+				}
 			}else if(token.type == "PRINT"){
 				if(index != startIndex){
 					throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
@@ -247,6 +253,12 @@ function parseDispatch(lexResult, line, startIndex, endIndex){
 					throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
 				}else{
 					return returnParser(lexResult, line, startIndex, endIndex);
+				}
+			}else if(token.type == "CONTINUE" || token.type == "BREAK"){
+				if(index != startIndex){
+					throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+				}else{
+					return loopCtrlParser(lexResult, line, startIndex, endIndex);
 				}
 			}
 		}
@@ -303,7 +315,7 @@ function funCallArgsParse(lexResult, line, startIndex, endIndex){
 
 function funDefParser(lexResult, line, startIndex, endIndex){
 	if(endIndex - startIndex < 5)
-		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid function definition";
+		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid function definition";;
 	if(lexResult[line][startIndex+1].type != "IDENTIFIER")
 		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid function definition";
 	if(lexResult[line][startIndex+2].type != "LPAREN")
@@ -365,6 +377,27 @@ function parseFuncArgs(lexResult, line, startIndex, endIndex){
 }
 
 
+function loopCtrlParser(lexResult, line, startIndex, endIndex){
+	if(endIndex - startIndex != 1){
+		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+	}	
+	var res = {
+		"line": line+1,
+		"node": new treeNode(),
+	}
+	res.node.nType = "RESERVED";
+	var token = lexResult[line][startIndex];
+	if(token.type == "BREAK"){
+		res.node.nName = "break";
+	}else if(token.type == "CONTINUE"){
+		res.node.nName = "continue";
+	}else{
+		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+	}
+	return res;
+}
+
+
 function returnParser(lexResult, line, startIndex, endIndex){
 	if(endIndex - startIndex != 2){
 		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
@@ -401,6 +434,11 @@ function printParser(lexResult, line, startIndex, endIndex){
 	res.node.nName = "print";
 	res.node.leftChild = leftRes.node;
 	return res;
+}
+
+
+function forParser(lexResult, line, startIndex, endIndex){
+	throw "for loop is under developing....";
 }
 
 
