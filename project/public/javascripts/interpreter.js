@@ -65,10 +65,18 @@ function execute(treeNode, currentStorage) {
                 throw "[ERROR] at function '" + treeNode.nName + "'\nTypeError: needs exactly " + number + " parameters"
             }
             let single_input = theFunction.rightChild
-            while (single_input != null) {
-                execute(single_input, newStorage)
-                single_input = single_input.next
-            }
+            // while (single_input != null) {
+            //     execute(single_input, newStorage)
+            //     single_input = single_input.next
+            // }
+			try {
+				while (single_input != null) {
+	                execute(single_input, newStorage)
+	                single_input = single_input.next
+	            }
+			} catch (e) {
+				return e
+			}
             console.log(theFunction)
             console.log(newStorage)
             break
@@ -82,6 +90,8 @@ function execute(treeNode, currentStorage) {
                     resultTextarea.append(execute(treeNode.leftChild, currentStorage))
                     resultTextarea.append('\n')
                     break
+				case "return":
+					throw execute(treeNode.leftChild, currentStorage)
                 default:
                     break
             }
