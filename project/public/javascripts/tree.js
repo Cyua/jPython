@@ -219,15 +219,16 @@ function parseDispatch(lexResult, line, startIndex, endIndex){
 		}
 	}
 
+
 	if(endIndex - startIndex == 4){
 		if(lexResult[line][startIndex].type == "IDENTIFIER" && lexResult[line][startIndex+1].type == "MLPAREN" 
-			&& lexResult[line][startIndex+2].type == "INTEGER_CONST" && lexResult[line][startIndex+3].type == "MRPAREN")
+			&& lexResult[line][startIndex+2].type == "INTEGER_CONST" && lexResult[line][startIndex+3].type == "MRPAREN"){
 			res.line = line + 1;
 			res.node = buildIdentifier(lexResult[line][startIndex]);
 			res.node.nValue = lexResult[line][startIndex+2].value;
 			return res;
+		}
 	}
-
 	if(lexResult[line][startIndex].type == "MLPAREN" && lexResult[line][endIndex - 1].type == "MRPAREN"){
 		res.line = line + 1;
 		res.node = new treeNode();
@@ -235,10 +236,11 @@ function parseDispatch(lexResult, line, startIndex, endIndex){
 		res.node.rightChild = buildList(lexResult, line, startIndex+1, endIndex-1);
 		return res;
 	}
-	
+
 	var indentCnt = 0;
 	for(var index = startIndex; index < endIndex; index++){
 		var token = lexResult[line][index];	
+
 		if(token.type == "INDENT"){
 			indentCnt += 1;	
 			startIndex = index + 1;
@@ -384,12 +386,14 @@ function funDefParser(lexResult, line, startIndex, endIndex){
 	var funArgs = parseFuncArgs(lexResult, line, startIndex+3, endIndex-2);
 	res.node.leftChild = funArgs;
 	var lineNum = line+1;
+
 	res.node.rightChild = new treeNode();
 	var tempNode = res.node.rightChild;
 	while(lineNum < i){
 		var tempRes = parseDispatch(lexResult, lineNum, 0, lexResult[lineNum].length);
 		if(tempRes == null)
 			throw "parse failed";
+
 		lineNum = tempRes.line;
 		tempNode.next = tempRes.node;
 		tempNode = tempNode.next;
