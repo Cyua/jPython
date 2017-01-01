@@ -91,6 +91,7 @@ function parseTree(lexResult){
 		prevNode.next = tempRes.node;
 		prevNode = prevNode.next;
 	}
+	console.log(root);
 	return root;	
 }
 
@@ -241,6 +242,12 @@ function parseDispatch(lexResult, line, startIndex, endIndex){
 				}else{
 					return printParser(lexResult, line, startIndex, endIndex);
 				}
+			}else if(token.type == "RETURN"){
+				if(index != startIndex){
+					throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+				}else{
+					return returnParser(lexResult, line, startIndex, endIndex);
+				}
 			}
 		}
 		if(token.category == "signals"){
@@ -354,6 +361,26 @@ function parseFuncArgs(lexResult, line, startIndex, endIndex){
 	}
 	var res = buildIdentifier(token);
 	res.rightChild = parseFuncArgs(lexResult, line, startIndex+2, endIndex);
+	return res;
+}
+
+
+function returnParser(lexResult, line, startIndex, endIndex){
+	if(endIndex - startIndex != 2){
+		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+	}
+	var token = lexResult[line][startIndex+1];
+	if(token.type != "IDENTIFIER" && token.category != "number"){
+		throw "[ERROR] at line " + (line+1) + "\nSyntaxError: invalid syntax";
+	}
+	var res = {
+		"line":line+1,
+		"node":new treeNode(),
+	}
+	var leftRes = parseDispatch(lexResult, line, startIndex+1, endIndex);
+	res.node.nType = "RESERVED";
+	res.node.nName = "return";
+	res.node.leftChild = leftRes.node;
 	return res;
 }
 
