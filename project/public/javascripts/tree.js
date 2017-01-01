@@ -82,6 +82,7 @@ function parseTree(lexResult){
 	prevNode = root;
 	errCode = null;
 	funcNameList = ["range",];
+	console.log(lexResult);
 
 	while(line < lexResult.length){
 		var tempRes = parseDispatch(lexResult, line, 0, lexResult[line].length);
@@ -298,6 +299,8 @@ function parseDispatch(lexResult, line, startIndex, endIndex){
 				}else{
 					return branchParser(lexResult, line, startIndex, endIndex);
 				}
+			}else if(token.type == "ELSE"){
+				throw "[ERROR] at line " + (line+1) + "\nSyntaxError: unpaired 'else'";
 			}
 		}
 		if(token.category == "signals"){
