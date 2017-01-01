@@ -313,8 +313,9 @@ function Lex(){
 	//var regEx = /\n+/g;
 	//text = text.replace(regEx, '\n');
 	var textarr = text.split("\n");
+	var blank = /^\s*$/g;
 	for(var i=0;i<textarr.length;i++){
-		if(textarr[i].length==0){
+		if(textarr[i].length==0||blank.test(textarr[i])==true){
 		textarr.splice(i,1);
 		i = i-1;
 		}
