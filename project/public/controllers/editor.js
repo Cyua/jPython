@@ -6,23 +6,26 @@ const codemirrorEditor = CodeMirror.fromTextArea(mTextarea, {
 
 function btnClick() {
     try {
-        var lexResult = Lex();
+        var lexResult = Lex()
     } catch(e) {
-        console.log(e);
-        return;
+        resultTextarea.append(e)
+        resultTextarea.append('\n\n')
+        return
     }
-    var root = null;
+    var root = null
     try{
-        root = parseTree(lexResult);
+        root = parseTree(lexResult)
     } catch(e) {
-        console.log(e);
-        return;
+        resultTextarea.append(e)
+        resultTextarea.append('\n\n')
+        return
     }
     try {
-        interpreter(root);
+        interpreter(root)
     } catch(e) {
-        console.log(e);
-        return;
+        resultTextarea.append(e.value)
+        resultTextarea.append('\n\n')
+        return
     }
     resultTextarea.append('\n')
 }

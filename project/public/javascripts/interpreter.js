@@ -1,4 +1,5 @@
 const resultTextarea = $('#result')
+let error = {"error": true}
 
 class storage{
 	constructor(parent = null, variables = {}, functions = {}) {
@@ -55,7 +56,8 @@ function execute(treeNode, currentStorage) {
             let theFunction = currentStorage.functions[treeNode.nName]
             while (theFunction == null) {
                 if (currentStorage.parent == null) {
-                    throw "[ERROR] " + treeNode.nName + " is not defined"
+					error.value = "[ERROR] " + treeNode.nName + " is not defined"
+                    throw error
                 }
                 theFunction = currentStorage.parent.functions[treeNode.nName]
             }
@@ -63,13 +65,15 @@ function execute(treeNode, currentStorage) {
             let parameter2 = treeNode.leftChild
             for (i in theFunction.parameters) {
                 if (parameter2 == null) {
-                    throw "[ERROR] at function '" + treeNode.nName + "'\nTypeError: needs exactly " + number + " parameters"
+					error.value = "[ERROR] at function '" + treeNode.nName + "'\nTypeError: needs exactly " + number + " parameters"
+                    throw error
                 }
                 newStorage.variables[i] = execute(parameter2, currentStorage)
                 parameter2 = parameter2.leftChild
             }
             if (parameter2 != null) {
-                throw "[ERROR] at function '" + treeNode.nName + "'\nTypeError: needs exactly " + number + " parameters"
+				error.value = "[ERROR] at function '" + treeNode.nName + "'\nTypeError: needs exactly " + number + " parameters"
+				throw error
             }
             let single_input = theFunction.rightChild
 			try {
@@ -78,6 +82,9 @@ function execute(treeNode, currentStorage) {
 	                single_input = single_input.next
 	            }
 			} catch (e) {
+				if (typeof(e) === 'object' && e.error) {
+					throw error
+				}
 				return e
 			}
             console.log(theFunction)
@@ -171,7 +178,8 @@ function handlerEXPR(treeNode, currentStorage) {
 			} else if (typeof(operand1) === 'object' && typeof(operand2) === 'object') {
 				value = operand1.concat(operand2)
 			} else {
-				throw "[ERROR] wrong usage of '+'"
+				error.value = "[ERROR] wrong usage of '+'"
+				throw error
 			}
             break
         case "MINUS":
