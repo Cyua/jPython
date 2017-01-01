@@ -157,7 +157,7 @@ function getNextToken(line,str){
 			break;
 		case "]":
 			Token.category = "brackets";
-			Token.type = "MR，PAREN";
+			Token.type = "MRPAREN";
 			Token.value = str;
 			break;
 		//signal
