@@ -32,6 +32,13 @@ function execute(treeNode, currentStorage) {
             return treeNode.nValue
             break
         case "LIST":
+			let list = []
+			let element = treeNode.rightChild
+			while (element != null) {
+				list[list.length] = execute(element, currentStorage)
+				element = element.rightChild
+			}
+			return list
             break
         case "FUNC":
             treeNode.parameters = {}
@@ -83,7 +90,12 @@ function execute(treeNode, currentStorage) {
         case "RESERVED":
             switch (treeNode.nName) {
                 case "print":
-                    resultTextarea.append(execute(treeNode.leftChild, currentStorage))
+					let printValue = execute(treeNode.leftChild, currentStorage)
+					if (typeof(printValue) === 'object') {
+						handlerPRINTLIST(printValue)
+					} else {
+						resultTextarea.append(printValue)
+					}
                     resultTextarea.append('\n')
                     break
 				case "return":
@@ -141,7 +153,13 @@ function handlerEXPR(treeNode, currentStorage) {
     let value
     switch (operator) {
         case "PLUS":
-            value = operand1 + operand2
+			if (typeof(operand1) !== 'object' && typeof(operand2) !== 'object') {
+				value = operand1 + operand2
+			} else if (typeof(operand1) === 'object' && typeof(operand2) === 'object') {
+				value = operand1.concat(operand2)
+			} else {
+				throw "[ERROR] wrong usage of '+'"
+			}
             break
         case "MINUS":
             value = operand1 - operand2
@@ -202,4 +220,22 @@ function handlerEXPR(treeNode, currentStorage) {
             break
     }
     return value
+}
+
+function handlerPRINTLIST(list) {
+	resultTextarea.append('[')
+	for (i in list) {
+		if (typeof(list[i]) === 'object') {
+			if (i != 0) {
+				resultTextarea.append(', ')
+			}
+			handlerPRINTLIST(list[i])
+		} else if (i == 0) {
+			resultTextarea.append(list[i])
+		} else {
+			resultTextarea.append(', ')
+			resultTextarea.append(list[i])
+		}
+	}
+	resultTextarea.append(']')
 }
