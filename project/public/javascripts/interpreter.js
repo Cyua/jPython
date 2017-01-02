@@ -237,6 +237,9 @@ function execute(treeNode, currentStorage) {
 			// 	error.value = "[ERROR]\nNameError: name '" + treeNode.nName + "' is not defined"
 			// 	throw error
 			// }
+			if (treeNode.nValue != null) {
+				return currentStorage.variables[treeNode.nName][treeNode.nValue]
+			}
             return currentStorage.variables[treeNode.nName]
             break
         case "ASSIGN":
