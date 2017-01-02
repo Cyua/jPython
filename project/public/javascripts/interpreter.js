@@ -19,14 +19,12 @@ function interpreter(root) {
         execute(single_input, currentStorage)
         single_input = single_input.next
     }
-    console.log(currentStorage)
 }
 
 function execute(treeNode, currentStorage) {
     if (treeNode == null) {
         return
     }
-    console.log(treeNode)
     switch (treeNode.nType) {
         case "NUMBER":
             return parseInt(treeNode.nValue)
